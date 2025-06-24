@@ -5,8 +5,8 @@
 void Renderer::init(VulkanContext& context)
 {
 	_context = &context;
-
 	_buffer.init(context);
+	_descriptorSetManager.init(context);
 
 	create_command_pool();
 	create_pipeline();
@@ -41,5 +41,15 @@ void Renderer::create_pipeline()
 		fmt::print("Error when building the vertex shader \n");
 	}
 
+	VkPushConstantRange bufferRange{};
+	bufferRange.offset = 0;
+	bufferRange.size = sizeof(GPUDrawPushConstants);
+	bufferRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
+	//VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
+	//pipeline_layout_info.pPushConstantRanges = &bufferRange;
+	//pipeline_layout_info.pushConstantRangeCount = 1;
+	//pipeline_layout_info.pSetLayouts = &_singleImageDescriptorLayout;
+	//pipeline_layout_info.setLayoutCount = 2;
+	//VK_CHECK(vkCreatePipelineLayout(_context->getDevice(), &pipeline_layout_info, nullptr, &_pipelineLayout));
 }

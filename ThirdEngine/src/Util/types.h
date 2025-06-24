@@ -4,3 +4,10 @@
 #include <vma/vk_mem_alloc.h>
 #include <iostream>
 #include <vector>
+#include <glm/glm.hpp>
+
+struct GPUDrawPushConstants {
+	// push constants
+	glm::mat4 worldMatrix;
+	VkDeviceAddress vertexBuffer;
+};

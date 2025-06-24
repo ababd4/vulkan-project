@@ -139,6 +139,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\engine.cpp" />
+    <ClCompile Include="src\Graphics\Descriptor\vk_Descriptors.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Graphics\vk_context.cpp" />
     <ClCompile Include="src\Graphics\vk_buffer.cpp" />
@@ -146,16 +147,19 @@
     <ClCompile Include="vendor\include\vma\vk_mem_alloc.cpp" />
     <ClCompile Include="src\Graphics\vk_pipeline.cpp" />
     <ClCompile Include="src\Graphics\vk_init.cpp" />
+    <ClCompile Include="src\Graphics\Descriptor\vk_DescriptorManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine.h" />
     <ClInclude Include="src\Graphics\vk_context.h" />
+    <ClInclude Include="src\Graphics\Descriptor\vk_Descriptors.h" />
     <ClInclude Include="src\Util\types.h" />
     <ClInclude Include="src\Util\util.h" />
     <ClInclude Include="src\Graphics\vk_buffer.h" />
     <ClInclude Include="src\Graphics\vk_renderer.h" />
     <ClInclude Include="src\Graphics\vk_pipeline.h" />
     <ClInclude Include="src\Graphics\vk_init.h" />
+    <ClInclude Include="src\Graphics\Descriptor\vk_DescriptorManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

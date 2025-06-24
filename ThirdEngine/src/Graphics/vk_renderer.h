@@ -3,6 +3,7 @@
 #include "../Graphics/vk_context.h"
 #include "../Graphics/vk_buffer.h"
 #include "../Graphics/vk_pipeline.h"
+#include "../Graphics/Descriptor/vk_DescriptorManager.h"
 #include "../Util/types.h"
 
 class Renderer
@@ -15,14 +16,21 @@ public:
 private:
 	VulkanContext* _context;
 	
-	// command pool
+	// Command Pool
 	VkCommandPool _commandPool;
 
-	// buffer
+	// Buffer
 	Buffer _buffer;
 
-	// pipeline
+	// Pipeline
 	VkPipeline _pipeline;
+	VkPipelineLayout _pipelineLayout;
+
+	// Push Constants
+	GPUDrawPushConstants _pushConstants;
+
+	// DescriptorSet Manager
+	DescriptorSetManager _descriptorSetManager;
 
 	void create_command_pool();
 	void create_pipeline();
