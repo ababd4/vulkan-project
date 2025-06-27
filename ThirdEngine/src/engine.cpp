@@ -2,8 +2,9 @@
 
 void ThirdEngine::init()
 {
-	_vulkanContext.init();
-	_renderer.init(_vulkanContext);
+	m_renderWindow.init();
+	m_vulkanContext.init();
+	m_renderer.init(m_vulkanContext);
 }
 
 void ThirdEngine::run()
@@ -13,6 +14,6 @@ void ThirdEngine::run()
 
 void ThirdEngine::cleanup()
 {
-	_renderer.cleanup();
-	_vulkanContext.cleanup();
+	m_renderer.cleanup();
+	m_vulkanContext.cleanup();
 }

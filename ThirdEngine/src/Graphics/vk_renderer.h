@@ -29,10 +29,16 @@ private:
 	// Push Constants
 	GPUDrawPushConstants _pushConstants;
 
-	// DescriptorSet Manager
-	DescriptorSetManager _descriptorSetManager;
+	// Descriptor
+	DescriptorAllocatorGrowable _descriptorAllocator;
+	VkDescriptorSetLayout _layout;
+
+	// drawing image
+	AllocatedImage _drawImage;
+	AllocatedImage _depthImage;
 
 	void create_command_pool();
 	void create_pipeline();
+	void create_descriptor_allcator();
 };
 

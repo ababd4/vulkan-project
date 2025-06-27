@@ -15,7 +15,7 @@ public:
 private:
 
 	void create_staging_buffer();
-	VkBuffer _staging_buffer;	
+	VkBuffer _staging_buffer;
 	VmaAllocator temp_allocator;
 	VmaAllocation _staging_buffer_allocation;
 

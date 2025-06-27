@@ -11,3 +11,9 @@ struct GPUDrawPushConstants {
 	glm::mat4 worldMatrix;
 	VkDeviceAddress vertexBuffer;
 };
+
+struct AllocatedImage {
+	VkImage image;
+	VkImageView imageView;
+	VkFormat imageFormat;
+};
