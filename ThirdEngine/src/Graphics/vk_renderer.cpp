@@ -2,11 +2,11 @@
 
 #include "../Util/util.h"
 
-void Renderer::init(VulkanContext& context)
+void Renderer::init(VulkanContext* context, Window& window)
 {
-	_context = &context;
-	_buffer.init(context);
-	
+	m_context = context;
+	m_buffer.init(*context);
+	m_swapchain.init(m_context, window.GetWindowExtent().width, window.GetWindowExtent().height);
 
 	create_command_pool();
 	create_descriptor_allcator();
@@ -15,8 +15,10 @@ void Renderer::init(VulkanContext& context)
 
 void Renderer::cleanup()
 {
-	_buffer.cleanup();
-	vkDestroyCommandPool(_context->getDevice(), _commandPool, nullptr);
+	m_buffer.cleanup();
+	m_swapchain.cleanup();
+	vkDestroyCommandPool(m_context->GetDevice(), m_commandPool, nullptr);
+	vkDestroyDescriptorSetLayout(m_context->GetDevice(), _drawImageDescriptorLayout, nullptr);
 }
 
 void Renderer::create_command_pool()
@@ -25,9 +27,9 @@ void Renderer::create_command_pool()
 	command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	command_pool_create_info.pNext = nullptr;
 	command_pool_create_info.flags = 0;
-	command_pool_create_info.queueFamilyIndex = _context->getQueueFamilyIndex();
+	command_pool_create_info.queueFamilyIndex = m_context->GetQueueFamilyIndex();
 
-	VK_CHECK( vkCreateCommandPool(_context->getDevice(), &command_pool_create_info, nullptr, &_commandPool) );
+	VK_CHECK( vkCreateCommandPool(m_context->GetDevice(), &command_pool_create_info, nullptr, &m_commandPool) );
 }
 
 void Renderer::create_descriptor_allcator()
@@ -39,20 +41,35 @@ void Renderer::create_descriptor_allcator()
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 }
 	};
 
-	_descriptorAllocator.init(_context->getDevice(), 10, sizes);
+	m_descriptorAllocator.init(m_context->GetDevice(), 10, sizes);
 
+	//make the descriptor set layout for our compute draw
+	{
+		std::cout << "_drawImageDescriptorLayout" << std::endl;
+		DescriptorLayoutBuilder builder;
+		builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+		_drawImageDescriptorLayout = builder.build(m_context->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
+	}
 
+	_drawImageDescriptors = m_descriptorAllocator.allocate(m_context->GetDevice(), _drawImageDescriptorLayout);
+
+	{
+		DescriptorWriter writer;
+		writer.write_image(0, m_swapchain.GetDrawImage().imageView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+
+		writer.update_set(m_context->GetDevice(), _drawImageDescriptors);
+	}
 }
 
 void Renderer::create_pipeline()
 {
 	VkShaderModule vertexShader;
-	if (!vkutil::load_shader_module("res/shaders/mesh.vert.spv", _context->getDevice(), &vertexShader)) {
+	if (!vkutil::load_shader_module("res/shaders/mesh.vert.spv", m_context->GetDevice(), &vertexShader)) {
 		fmt::print("Error when building the vertex shader \n");
 	}
 
 	VkShaderModule fragmentShader;
-	if (!vkutil::load_shader_module("res/shaders/mesh.frag.spv", _context->getDevice(), &fragmentShader)) {
+	if (!vkutil::load_shader_module("res/shaders/mesh.frag.spv", m_context->GetDevice(), &fragmentShader)) {
 		fmt::print("Error when building the vertex shader \n");
 	}
 
@@ -64,15 +81,15 @@ void Renderer::create_pipeline()
 	DescriptorLayoutBuilder layoutBuilder;
 	layoutBuilder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 
-	_layout = layoutBuilder.build(_context->getDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
-	VkDescriptorSetLayout layouts[] = { _layout };
+	m_layout = layoutBuilder.build(m_context->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkDescriptorSetLayout layouts[] = { m_layout };
 
 	VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
 	pipeline_layout_info.pPushConstantRanges = &bufferRange;
 	pipeline_layout_info.pushConstantRangeCount = 1;
 	pipeline_layout_info.pSetLayouts = layouts;
 	pipeline_layout_info.setLayoutCount = 1;
-	VK_CHECK( vkCreatePipelineLayout(_context->getDevice(), &pipeline_layout_info, nullptr, &_pipelineLayout) );
+	VK_CHECK( vkCreatePipelineLayout(m_context->GetDevice(), &pipeline_layout_info, nullptr, &m_pipelineLayout) );
 
 	PipelineBuilder pipelineBuilder;
 	pipelineBuilder.set_shaders(vertexShader, fragmentShader);
@@ -83,9 +100,9 @@ void Renderer::create_pipeline()
 	pipelineBuilder.disable_blending();
 	pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_LESS);
 
-	pipelineBuilder._pipelineLayout = _pipelineLayout;
-	_pipeline = pipelineBuilder.build_pipeline(_context->getDevice());
+	pipelineBuilder._pipelineLayout = m_pipelineLayout;
+	m_pipeline = pipelineBuilder.build_pipeline(m_context->GetDevice());
 
-	vkDestroyShaderModule(_context->getDevice(), fragmentShader, nullptr);
-	vkDestroyShaderModule(_context->getDevice(), vertexShader, nullptr);
+	vkDestroyShaderModule(m_context->GetDevice(), fragmentShader, nullptr);
+	vkDestroyShaderModule(m_context->GetDevice(), vertexShader, nullptr);
 }

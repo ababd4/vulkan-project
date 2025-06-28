@@ -11,7 +11,7 @@ void DescriptorSetManager::init(VulkanContext& context)
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 }
     };
 
-    _allocator.init(context.getDevice(), 10, sizes);
+    _allocator.init(context.GetDevice(), 10, sizes);
 }
 
 void DescriptorSetManager::cleanup()

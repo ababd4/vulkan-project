@@ -4,7 +4,7 @@
 
 void Buffer::init(VulkanContext& context)
 {
-	temp_allocator = context.getAllocator();
+	temp_allocator = context.GetAllocator();
 	create_staging_buffer();
 }
 

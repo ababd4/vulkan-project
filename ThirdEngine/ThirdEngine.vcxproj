@@ -118,7 +118,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)vendor\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan/vulkan-1.lib;fmt/fmtd.lib;SDL/SDL2.lib;SDL/SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan/vulkan-1.lib;fmt/fmtd.lib;SDL/SDL2.lib;SDL/SDL2main.lib;vkbootstrap/vk-bootstrap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,6 +140,7 @@
   <ItemGroup>
     <ClCompile Include="src\engine.cpp" />
     <ClCompile Include="src\Graphics\Descriptor\vk_Descriptors.cpp" />
+    <ClCompile Include="src\Graphics\vk_swapchain.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Graphics\vk_context.cpp" />
     <ClCompile Include="src\Graphics\vk_buffer.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="src\engine.h" />
     <ClInclude Include="src\Graphics\vk_context.h" />
     <ClInclude Include="src\Graphics\Descriptor\vk_Descriptors.h" />
+    <ClInclude Include="src\Graphics\vk_swapchain.h" />
     <ClInclude Include="src\Util\types.h" />
     <ClInclude Include="src\Util\util.h" />
     <ClInclude Include="src\Graphics\vk_buffer.h" />

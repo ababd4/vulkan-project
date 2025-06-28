@@ -1,41 +1,45 @@
 #pragma once
 
 #include "../Util/types.h"
+#include "../Window/Window.h"
+#include "VkBootstrap/VkBootstrap.h"
+
+constexpr bool bUseValidationLayers = false;
 
 class VulkanContext
 {
 public:
 
-	void init();
+	void init(Window* window);
 	void cleanup();
 
-	VkInstance getInstance() { return _instance; };
-	VkDevice getDevice() { return _device; };
-	VkPhysicalDevice getPhysicalDevice() { return _physicalDevice; };
-	VkSurfaceKHR getSurface() { return _surface; };
-	VkQueue getGraphicsQueue() { return _graphicsQueue; };
-	VkQueue getPresentQueue() { return _presentQueue; };
-	VmaAllocator getAllocator() { return _allocator; };
-	uint32_t getQueueFamilyIndex() { return _queue_family_index; };
+	VkInstance GetInstance() { return m_instance; };
+	VkDevice GetDevice() { return m_device; };
+	VkPhysicalDevice GetPhysicalDevice() { return m_physicalDevice; };
+	VkSurfaceKHR GetSurface() { return m_surface; };
+	VkQueue GetGraphicsQueue() { return m_graphicsQueue; };
+	VkQueue GetPresentQueue() { return m_presentQueue; };
+	VmaAllocator GetAllocator() { return m_allocator; };
+	uint32_t GetQueueFamilyIndex() { return m_queue_family_index; };
 
 private:
 	// vulkan
-	VkInstance _instance = VK_NULL_HANDLE;
-	VkSurfaceKHR _surface = VK_NULL_HANDLE;
-	VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
-	VkDevice _device = VK_NULL_HANDLE;
+	VkInstance m_instance = VK_NULL_HANDLE;
+	VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+	VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+	VkDevice m_device = VK_NULL_HANDLE;
+	VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;
+	vkb::Instance vkb_inst;
 
 	// queue
-	uint32_t _queue_family_index = 0;
-	VkQueue _graphicsQueue = VK_NULL_HANDLE;
-	VkQueue _presentQueue = VK_NULL_HANDLE;
+	uint32_t m_queue_family_index = 0;
+	VkQueue m_graphicsQueue = VK_NULL_HANDLE;
+	VkQueue m_presentQueue = VK_NULL_HANDLE;
 
 	// memory allocator
-	VmaAllocator _allocator;
+	VmaAllocator m_allocator;
 
-	void create_instance();
-	void create_device();
+	void create_context(Window* window);
 	void create_allocator();
-
 };
 

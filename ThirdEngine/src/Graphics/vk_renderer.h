@@ -4,38 +4,43 @@
 #include "../Graphics/vk_buffer.h"
 #include "../Graphics/vk_pipeline.h"
 #include "../Graphics/Descriptor/vk_DescriptorManager.h"
+#include "../Graphics/vk_swapchain.h"
+#include "../Window/Window.h"
 #include "../Util/types.h"
 
 class Renderer
 {
 public:
 
-	void init(VulkanContext& context);
+	void init(VulkanContext* context, Window& window);
 	void cleanup();
 
 private:
-	VulkanContext* _context;
+	VulkanContext* m_context;
 	
 	// Command Pool
-	VkCommandPool _commandPool;
+	VkCommandPool m_commandPool;
 
 	// Buffer
-	Buffer _buffer;
+	Buffer m_buffer;
 
 	// Pipeline
-	VkPipeline _pipeline;
-	VkPipelineLayout _pipelineLayout;
+	VkPipeline m_pipeline;
+	VkPipelineLayout m_pipelineLayout;
 
 	// Push Constants
-	GPUDrawPushConstants _pushConstants;
+	GPUDrawPushConstants m_pushConstants;
 
 	// Descriptor
-	DescriptorAllocatorGrowable _descriptorAllocator;
-	VkDescriptorSetLayout _layout;
+	DescriptorAllocatorGrowable m_descriptorAllocator;
+	VkDescriptorSetLayout m_layout;
 
 	// drawing image
-	AllocatedImage _drawImage;
-	AllocatedImage _depthImage;
+	VkDescriptorSet _drawImageDescriptors;
+	VkDescriptorSetLayout _drawImageDescriptorLayout;
+
+	// swapchain
+	Swapchain m_swapchain;
 
 	void create_command_pool();
 	void create_pipeline();

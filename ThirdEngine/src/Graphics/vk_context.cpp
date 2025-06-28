@@ -2,143 +2,81 @@
 
 #include "../Util/util.h"
 
-void VulkanContext::init()
+void VulkanContext::init(Window* window)
 {
-	create_instance();
-	create_device();
+	create_context(window);
 	create_allocator();
 }
 
 void VulkanContext::cleanup()
 {
-	vmaDestroyAllocator(_allocator);
+	vmaDestroyAllocator(m_allocator);
 
-	vkDestroyDevice(_device, nullptr);
-	vkDestroyInstance(_instance, nullptr);
+	vkDestroyDevice(m_device, nullptr);
+	vkDestroyInstance(m_instance, nullptr);
 }
 
-void VulkanContext::create_instance()
+void VulkanContext::create_context(Window* window)
 {
-	VkApplicationInfo application_info{};
-	application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	application_info.pNext = nullptr;
+    vkb::InstanceBuilder builder;
 
-	// application name
-	application_info.pApplicationName = "Third Engine";
+    //make the vulkan instance, with basic debug features
+    auto inst_ret = builder.set_app_name("Vulkan Engine")
+        .request_validation_layers(bUseValidationLayers)
+        .use_default_debug_messenger()
+        .require_api_version(1, 3, 0)
+        .build();
 
-	// applicaton version
-	application_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    vkb::Instance vkb_inst = inst_ret.value();
 
-	// engine name
-	application_info.pEngineName = "Third Engine";
+    // grab the instance
+    m_instance = vkb_inst;
+    m_debug_messenger = vkb_inst.debug_messenger;
 
-	// engine version
-	application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    SDL_Vulkan_CreateSurface(window->GetWindow(), m_instance, &m_surface);
 
-	// set vulkan's version 1.2
-	application_info.apiVersion = VK_API_VERSION_1_2;
+    //vulkan 1.3 features
+    VkPhysicalDeviceVulkan13Features features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+    features.dynamicRendering = true;
+    features.synchronization2 = true;
 
-	// use validation layer
-	const std::vector< const char* > layers{
-		"VK_LAYER_KHRONOS_validation"
-	};
+    //vulkan 1.2 features
+    VkPhysicalDeviceVulkan12Features features12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+    features12.bufferDeviceAddress = true;
+    features12.descriptorIndexing = true;
 
-	// create instance
-	VkInstanceCreateInfo create_instance_info;
-	create_instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	create_instance_info.pNext = nullptr;
-	create_instance_info.flags = 0;
+    // use vkbootstrap to select a gpu.
+    // select a gpu that can write to the sdl surface and supports vulkan 1.3 with the correct features
+    vkb::PhysicalDeviceSelector selector{ vkb_inst };
+    vkb::PhysicalDevice physicalDevice = selector
+        .set_minimum_version(1, 3)
+        .set_required_features_13(features)
+        .set_required_features_12(features12)
+        .set_surface(m_surface)
+        .select()
+        .value();
 
-	// specify the application information
-	create_instance_info.pApplicationInfo = &application_info;
+    // Craete the final vulkan device
+    vkb::DeviceBuilder deviceBuilder{ physicalDevice };
 
-	// specify use layer
-	create_instance_info.enabledLayerCount = layers.size();
-	create_instance_info.ppEnabledLayerNames = layers.data();
+    vkb::Device vkbDevice = deviceBuilder.build().value();
 
-	create_instance_info.enabledExtensionCount = 0;
-	create_instance_info.ppEnabledExtensionNames = nullptr;
+    // Get the vulkan device handle used in the rest of a vulkan application
+    m_device = vkbDevice.device;
+    m_physicalDevice = physicalDevice.physical_device;
 
-	VK_CHECK( vkCreateInstance(&create_instance_info, nullptr, &_instance) );
-}
-
-void VulkanContext::create_device()
-{
-	// get the number of devices
-	uint32_t device_count = 0;
-	VK_CHECK(vkEnumeratePhysicalDevices(_instance, &device_count, nullptr)); 
-	
-	// get the infomation of device
-	std::vector<VkPhysicalDevice> devices(device_count);
-	VK_CHECK( vkEnumeratePhysicalDevices(_instance, &device_count, devices.data()) );
-
-	// optional: show infomation of physical device
-
-	for (const auto& device : devices) {
-		// TODO: choose the best GPU
-		_physicalDevice = device;
-	}
-	
-	if (_physicalDevice == VK_NULL_HANDLE) {
-		throw std::runtime_error("failed to find a suitable GPU");
-	}
-
-	// get the queues that are available on the physical device
-	uint32_t queue_props_count = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queue_props_count, nullptr);
-
-	std::vector<VkQueueFamilyProperties> queue_props(queue_props_count);
-	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queue_props_count, queue_props.data());
-
-	for (uint32_t i = 0; i < queue_props.size(); i++) {
-		if (queue_props[i].queueFlags & VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT) {
-			_queue_family_index = i;
-			break;
-		}
-	}
-
-	const float priority = 0.0f;
-
-	VkDeviceQueueCreateInfo queue_create_info{};
-	queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queue_create_info.pNext = nullptr;
-	queue_create_info.flags = 0;
-	queue_create_info.queueFamilyIndex = _queue_family_index;
-	queue_create_info.queueCount = 1;
-	queue_create_info.pQueuePriorities = &priority;
-
-	//// use VK_EXT_pipeline_creation_feedback extention
-	//std::vector< const char* > extension{
-	//	VK_EXT_PIPELINE_CREATION_FEEDBACK_EXTENSION_NAME
-	//};
-
-	// create logical device
-	VkDeviceCreateInfo device_create_info{};
-	device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	device_create_info.pNext = nullptr;
-	device_create_info.flags = 0;
-	device_create_info.queueCreateInfoCount = 1;
-	device_create_info.pQueueCreateInfos = &queue_create_info;
-	device_create_info.enabledLayerCount = 0;
-	device_create_info.ppEnabledLayerNames = nullptr;
-	device_create_info.enabledExtensionCount = 0; // extension.size();
-	device_create_info.ppEnabledExtensionNames = nullptr; // extension.data();
-	device_create_info.pEnabledFeatures = nullptr;
-
-	VK_CHECK( vkCreateDevice(_physicalDevice, &device_create_info, nullptr, &_device) );
-	
-	// get queue from device
-	vkGetDeviceQueue(_device, _queue_family_index, 0, &_graphicsQueue);
-
+    // get a graphics queue
+    m_graphicsQueue = vkbDevice.get_queue(vkb::QueueType::graphics).value();
+    m_queue_family_index = vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
 }
 
 void VulkanContext::create_allocator()
 {
 	VmaAllocatorCreateInfo allocator_create_info{};
-	allocator_create_info.instance = _instance;
-	allocator_create_info.physicalDevice = _physicalDevice;
-	allocator_create_info.device = _device;
+	allocator_create_info.instance = m_instance;
+	allocator_create_info.physicalDevice = m_physicalDevice;
+	allocator_create_info.device = m_device;
 	//allocator_create_info.vulkanApiVersion = 0;
 
-	VK_CHECK( vmaCreateAllocator(&allocator_create_info, &_allocator) );
+	VK_CHECK( vmaCreateAllocator(&allocator_create_info, &m_allocator) );
 }
