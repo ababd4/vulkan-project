@@ -60,11 +60,17 @@ void Swapchain::init(VulkanContext* context, uint32_t width, uint32_t height)
 
 void Swapchain::cleanup()
 {
+	vkDestroySwapchainKHR(m_context->GetDevice(), m_swapchain, nullptr);
+
 	vkDestroyImageView(m_context->GetDevice(), m_drawImage.imageView, nullptr);
 	vmaDestroyImage(m_context->GetAllocator(), m_drawImage.image, m_drawImage.allocation);
 
 	vkDestroyImageView(m_context->GetDevice(), m_depthImage.imageView, nullptr);
 	vmaDestroyImage(m_context->GetAllocator(), m_depthImage.image, m_depthImage.allocation);
+
+	for (int i = 0; i < m_swapchainImageViews.size(); i++) {
+		vkDestroyImageView(m_context->GetDevice(), m_swapchainImageViews[i], nullptr);
+	}
 }
 
 void Swapchain::create_swapchain(uint32_t width, uint32_t height)

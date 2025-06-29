@@ -17,8 +17,12 @@ void Renderer::cleanup()
 {
 	m_buffer.cleanup();
 	m_swapchain.cleanup();
+	m_descriptorAllocator.clear(m_context->GetDevice());
 	vkDestroyCommandPool(m_context->GetDevice(), m_commandPool, nullptr);
-	vkDestroyDescriptorSetLayout(m_context->GetDevice(), _drawImageDescriptorLayout, nullptr);
+	vkDestroyDescriptorSetLayout(m_context->GetDevice(), m_drawImageDescriptorLayout, nullptr);
+	vkDestroyDescriptorSetLayout(m_context->GetDevice(), m_layout, nullptr);
+	vkDestroyPipeline(m_context->GetDevice(), m_pipeline, nullptr);
+	vkDestroyPipelineLayout(m_context->GetDevice(), m_pipelineLayout, nullptr);
 }
 
 void Renderer::create_command_pool()
@@ -48,16 +52,16 @@ void Renderer::create_descriptor_allcator()
 		std::cout << "_drawImageDescriptorLayout" << std::endl;
 		DescriptorLayoutBuilder builder;
 		builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-		_drawImageDescriptorLayout = builder.build(m_context->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
+		m_drawImageDescriptorLayout = builder.build(m_context->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
 	}
 
-	_drawImageDescriptors = m_descriptorAllocator.allocate(m_context->GetDevice(), _drawImageDescriptorLayout);
+	m_drawImageDescriptors = m_descriptorAllocator.allocate(m_context->GetDevice(), m_drawImageDescriptorLayout);
 
 	{
 		DescriptorWriter writer;
 		writer.write_image(0, m_swapchain.GetDrawImage().imageView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 
-		writer.update_set(m_context->GetDevice(), _drawImageDescriptors);
+		writer.update_set(m_context->GetDevice(), m_drawImageDescriptors);
 	}
 }
 

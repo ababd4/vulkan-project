@@ -42,9 +42,6 @@
     <ClCompile Include="src\Graphics\Descriptor\vk_Descriptors.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Descriptor\vk_DescriptorManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\Window\Window.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -78,9 +75,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Descriptor\vk_Descriptors.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Descriptor\vk_DescriptorManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Window\Window.h">

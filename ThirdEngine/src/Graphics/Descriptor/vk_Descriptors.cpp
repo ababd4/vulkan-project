@@ -154,6 +154,12 @@ VkDescriptorSet DescriptorAllocatorGrowable::allocate(VkDevice device, VkDescrip
 	return ds;
 }
 
+void DescriptorAllocatorGrowable::clear(VkDevice device)
+{
+	clear_pools(device);
+	destroy_pools(device);
+}
+
 void DescriptorWriter::write_buffer(int binding, VkBuffer buffer, size_t size, size_t offset, VkDescriptorType type)
 {
 	VkDescriptorBufferInfo& info = bufferInfos.emplace_back(VkDescriptorBufferInfo{

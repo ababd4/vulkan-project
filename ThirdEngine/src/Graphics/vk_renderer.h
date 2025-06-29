@@ -3,7 +3,7 @@
 #include "../Graphics/vk_context.h"
 #include "../Graphics/vk_buffer.h"
 #include "../Graphics/vk_pipeline.h"
-#include "../Graphics/Descriptor/vk_DescriptorManager.h"
+#include "../Graphics/Descriptor/vk_Descriptors.h"
 #include "../Graphics/vk_swapchain.h"
 #include "../Window/Window.h"
 #include "../Util/types.h"
@@ -36,8 +36,8 @@ private:
 	VkDescriptorSetLayout m_layout;
 
 	// drawing image
-	VkDescriptorSet _drawImageDescriptors;
-	VkDescriptorSetLayout _drawImageDescriptorLayout;
+	VkDescriptorSet m_drawImageDescriptors;
+	VkDescriptorSetLayout m_drawImageDescriptorLayout;
 
 	// swapchain
 	Swapchain m_swapchain;

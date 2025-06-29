@@ -25,6 +25,7 @@ public:
 	};
 
 	void init(VkDevice device, uint32_t initialSets, std::span<PoolSizeRatio> poolRatios);
+	void clear(VkDevice device);
 	void clear_pools(VkDevice device);
 	void destroy_pools(VkDevice device);
 

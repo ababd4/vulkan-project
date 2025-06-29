@@ -12,7 +12,9 @@ void VulkanContext::cleanup()
 {
 	vmaDestroyAllocator(m_allocator);
 
+    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyDevice(m_device, nullptr);
+    vkb::destroy_debug_utils_messenger(m_instance, m_debug_messenger);
 	vkDestroyInstance(m_instance, nullptr);
 }
 
