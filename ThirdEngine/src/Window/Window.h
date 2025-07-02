@@ -16,5 +16,5 @@ public:
 private:
 	struct SDL_Window* m_window{ nullptr };
 
-	VkExtent2D m_windowExtent{ 1700, 900 };
+	VkExtent2D m_windowExtent{ 800, 600 };
 };
