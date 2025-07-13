@@ -4,7 +4,11 @@
 #include "../Window/Window.h"
 #include "VkBootstrap/VkBootstrap.h"
 
+#ifdef _DEBUG
 constexpr bool bUseValidationLayers = true;
+#else
+constexpr bool bUseValidationLayers = false;
+#endif
 
 class VulkanContext
 {
