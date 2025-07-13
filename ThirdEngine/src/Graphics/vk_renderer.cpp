@@ -10,6 +10,7 @@ void Renderer::init(VulkanContext* context, Window& window)
 
 	create_command_pool();
 	create_descriptor_allcator();
+	create_render_pass();
 	create_pipeline();
 }
 
@@ -23,6 +24,7 @@ void Renderer::cleanup()
 	vkDestroyDescriptorSetLayout(m_context->GetDevice(), m_layout, nullptr);
 	vkDestroyPipeline(m_context->GetDevice(), m_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_context->GetDevice(), m_pipelineLayout, nullptr);
+	vkDestroyRenderPass(m_context->GetDevice(), m_renderPass, nullptr);
 }
 
 void Renderer::create_command_pool()
@@ -63,6 +65,38 @@ void Renderer::create_descriptor_allcator()
 
 		writer.update_set(m_context->GetDevice(), m_drawImageDescriptors);
 	}
+}
+
+void Renderer::create_render_pass()
+{
+	VkAttachmentDescription colorAttachment{};
+	colorAttachment.format = m_swapchain.GetSwapchainImageFormat();
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentRef{};
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass{};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+
+	VkRenderPassCreateInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+
+	VK_CHECK( vkCreateRenderPass(m_context->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) );
 }
 
 void Renderer::create_pipeline()

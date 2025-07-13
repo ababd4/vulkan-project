@@ -35,14 +35,18 @@ private:
 	DescriptorAllocatorGrowable m_descriptorAllocator;
 	VkDescriptorSetLayout m_layout;
 
-	// drawing image
+	// Drawing image
 	VkDescriptorSet m_drawImageDescriptors;
 	VkDescriptorSetLayout m_drawImageDescriptorLayout;
 
-	// swapchain
+	// Swapchain
 	Swapchain m_swapchain;
 
+	// Render Pass
+	VkRenderPass m_renderPass;
+
 	void create_command_pool();
+	void create_render_pass();
 	void create_pipeline();
 	void create_descriptor_allcator();
 };
