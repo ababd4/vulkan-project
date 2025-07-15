@@ -1,7 +1,7 @@
 #pragma once
-#include "../Util/types.h"
-#include "../Util/util.h"
-#include "vk_init.h"
+#include "../Util/Types.h"
+#include "../Util/Util.h"
+#include "vk_Init.h"
 #include <fstream>
 #include <optional>
 
@@ -18,11 +18,11 @@ public:
     VkPipelineRenderingCreateInfo _renderInfo;
     VkFormat _colorAttachmentformat;
 
-    PipelineBuilder() { clear(); }
+    PipelineBuilder() { Clear(); }
 
-    void clear();
+    void Clear();
 
-    VkPipeline build_pipeline(VkDevice device);
+    VkPipeline BuildPipeline(VkDevice device);
 
     void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
     void set_input_topology(VkPrimitiveTopology topology);
@@ -40,5 +40,5 @@ public:
 };
 
 namespace vkutil {
-    bool load_shader_module(const char* filePath, VkDevice device, VkShaderModule* outShaderModule);
+    bool LoadShaderModule(const char* filePath, VkDevice device, VkShaderModule* outShaderModule);
 }

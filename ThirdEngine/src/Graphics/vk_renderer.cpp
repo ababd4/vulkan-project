@@ -1,22 +1,30 @@
 #include "vk_renderer.h"
 
-#include "../Util/util.h"
+#include "../Util/Util.h"
+#include <array>
 
-void Renderer::init(VulkanContext* context, Window& window)
+void Renderer::Init(VulkanContext* context, Window& window)
 {
 	m_context = context;
-	m_buffer.init(*context);
+	m_buffer.Init(*context);
 	m_swapchain.init(m_context, window.GetWindowExtent().width, window.GetWindowExtent().height);
 
-	create_command_pool();
-	create_descriptor_allcator();
-	create_render_pass();
-	create_pipeline();
+	CreateCommandPool();
+	CreateCommandBuffers();
+	CreateDescriptorAllocator();
+	CreateRenderPass();
+	CreateFramebuffer();
+	CreatePipeline();
 }
 
-void Renderer::cleanup()
+void Renderer::Cleanup()
 {
-	m_buffer.cleanup();
+	m_buffer.Cleanup();
+
+	for (size_t i = 0; i < m_framebuffer.size(); i++) {
+		vkDestroyFramebuffer(m_context->GetDevice(), m_framebuffer[i], nullptr);
+	}
+
 	m_swapchain.cleanup();
 	m_descriptorAllocator.clear(m_context->GetDevice());
 	vkDestroyCommandPool(m_context->GetDevice(), m_commandPool, nullptr);
@@ -27,7 +35,12 @@ void Renderer::cleanup()
 	vkDestroyRenderPass(m_context->GetDevice(), m_renderPass, nullptr);
 }
 
-void Renderer::create_command_pool()
+void Renderer::Render()
+{
+
+}
+
+void Renderer::CreateCommandPool()
 {
 	VkCommandPoolCreateInfo command_pool_create_info{};
 	command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -38,7 +51,20 @@ void Renderer::create_command_pool()
 	VK_CHECK( vkCreateCommandPool(m_context->GetDevice(), &command_pool_create_info, nullptr, &m_commandPool) );
 }
 
-void Renderer::create_descriptor_allcator()
+void Renderer::CreateCommandBuffers()
+{
+	m_commandBuffers.resize(MAX_FRAME);
+
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = m_commandPool;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
+
+	VK_CHECK( vkAllocateCommandBuffers(m_context->GetDevice(), &allocInfo, m_commandBuffers.data()) );
+}
+
+void Renderer::CreateDescriptorAllocator()
 {
 	//create a descriptor pool that will hold 10 sets with 1 image each
 	std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> sizes =
@@ -67,7 +93,7 @@ void Renderer::create_descriptor_allcator()
 	}
 }
 
-void Renderer::create_render_pass()
+void Renderer::CreateRenderPass()
 {
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = m_swapchain.GetSwapchainImageFormat();
@@ -99,15 +125,38 @@ void Renderer::create_render_pass()
 	VK_CHECK( vkCreateRenderPass(m_context->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) );
 }
 
-void Renderer::create_pipeline()
+void Renderer::CreateFramebuffer()
+{
+	m_framebuffer.resize(m_swapchain.GetSwapchainImageViews().size());
+
+	for (size_t i = 0; i < m_swapchain.GetSwapchainImageViews().size(); i++) {
+		std::array<VkImageView, 1> attachments = {
+				m_swapchain.GetSwapchainImageViews()[i]
+				// Feature: add depth imageview
+		};
+
+		VkFramebufferCreateInfo framebufferCreateInfo{};
+		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferCreateInfo.width = m_swapchain.GetSwapchainExtent().width;
+		framebufferCreateInfo.height = m_swapchain.GetSwapchainExtent().height;
+		framebufferCreateInfo.layers = 1;
+		framebufferCreateInfo.renderPass = m_renderPass;
+		framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		framebufferCreateInfo.pAttachments = attachments.data();
+
+		VK_CHECK(vkCreateFramebuffer(m_context->GetDevice(), &framebufferCreateInfo, nullptr, &m_framebuffer[i]));
+	}
+}
+
+void Renderer::CreatePipeline()
 {
 	VkShaderModule vertexShader;
-	if (!vkutil::load_shader_module("res/shaders/mesh.vert.spv", m_context->GetDevice(), &vertexShader)) {
+	if (!vkutil::LoadShaderModule("res/shaders/mesh.vert.spv", m_context->GetDevice(), &vertexShader)) {
 		fmt::print("Error when building the vertex shader \n");
 	}
 
 	VkShaderModule fragmentShader;
-	if (!vkutil::load_shader_module("res/shaders/mesh.frag.spv", m_context->GetDevice(), &fragmentShader)) {
+	if (!vkutil::LoadShaderModule("res/shaders/mesh.frag.spv", m_context->GetDevice(), &fragmentShader)) {
 		fmt::print("Error when building the vertex shader \n");
 	}
 
@@ -139,7 +188,7 @@ void Renderer::create_pipeline()
 	pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_LESS);
 
 	pipelineBuilder._pipelineLayout = m_pipelineLayout;
-	m_pipeline = pipelineBuilder.build_pipeline(m_context->GetDevice());
+	m_pipeline = pipelineBuilder.BuildPipeline(m_context->GetDevice());
 
 	vkDestroyShaderModule(m_context->GetDevice(), fragmentShader, nullptr);
 	vkDestroyShaderModule(m_context->GetDevice(), vertexShader, nullptr);

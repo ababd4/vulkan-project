@@ -1,25 +1,30 @@
 #pragma once
 
-#include "../Graphics/vk_context.h"
-#include "../Graphics/vk_buffer.h"
-#include "../Graphics/vk_pipeline.h"
-#include "../Graphics/Descriptor/vk_Descriptors.h"
-#include "../Graphics/vk_swapchain.h"
+#include "../Graphics/vk_Context.h"
+#include "../Graphics/vk_Buffer.h"
+#include "../Graphics/vk_Pipeline.h"
+#include "../Graphics/vk_Descriptors.h"
+#include "../Graphics/vk_Swapchain.h"
 #include "../Window/Window.h"
-#include "../Util/types.h"
+#include "../Util/Types.h"
+
+constexpr int MAX_FRAME = 2;
 
 class Renderer
 {
 public:
 
-	void init(VulkanContext* context, Window& window);
-	void cleanup();
+	void Init(VulkanContext* context, Window& window);
+	void Cleanup();
+
+	void Render();
 
 private:
 	VulkanContext* m_context;
 	
-	// Command Pool
+	// Command
 	VkCommandPool m_commandPool;
+	std::vector<VkCommandBuffer> m_commandBuffers;
 
 	// Buffer
 	Buffer m_buffer;
@@ -45,9 +50,14 @@ private:
 	// Render Pass
 	VkRenderPass m_renderPass;
 
-	void create_command_pool();
-	void create_render_pass();
-	void create_pipeline();
-	void create_descriptor_allcator();
+	// Frame Buffer
+	std::vector<VkFramebuffer> m_framebuffer;
+
+	void CreateCommandPool();
+	void CreateCommandBuffers();
+	void CreateRenderPass();
+	void CreateFramebuffer();
+	void CreatePipeline();
+	void CreateDescriptorAllocator();
 };
 

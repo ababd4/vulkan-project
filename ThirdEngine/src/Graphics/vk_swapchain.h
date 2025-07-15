@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Graphics/vk_context.h"
-#include "../Util/types.h"
+#include "../Graphics/vk_Context.h"
+#include "../Util/Types.h"
 
 class Swapchain {
 public:

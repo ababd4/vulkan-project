@@ -15,72 +15,72 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\engine.cpp">
+    <ClCompile Include="src\Engine.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="src\Main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\vk_context.cpp">
+    <ClCompile Include="src\Graphics\vk_Context.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\vk_buffer.cpp">
+    <ClCompile Include="src\Graphics\vk_Buffer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\vk_renderer.cpp">
+    <ClCompile Include="src\Graphics\vk_Renderer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="vendor\include\vma\vk_mem_alloc.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\vk_pipeline.cpp">
+    <ClCompile Include="src\Graphics\vk_Pipeline.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\vk_init.cpp">
+    <ClCompile Include="src\Graphics\vk_Init.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Descriptor\vk_Descriptors.cpp">
+    <ClCompile Include="src\Graphics\vk_Descriptors.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\Window\Window.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\vk_swapchain.cpp">
+    <ClCompile Include="src\Graphics\vk_Swapchain.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\engine.h">
+    <ClInclude Include="src\Engine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\vk_context.h">
+    <ClInclude Include="src\Graphics\vk_Context.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Util\util.h">
+    <ClInclude Include="src\Util\Util.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\vk_buffer.h">
+    <ClInclude Include="src\Graphics\vk_Buffer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\vk_renderer.h">
+    <ClInclude Include="src\Graphics\vk_Renderer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Util\types.h">
+    <ClInclude Include="src\Util\Types.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\vk_pipeline.h">
+    <ClInclude Include="src\Graphics\vk_Pipeline.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\vk_init.h">
+    <ClInclude Include="src\Graphics\vk_Init.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Descriptor\vk_Descriptors.h">
+    <ClInclude Include="src\Graphics\vk_Descriptors.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Window\Window.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\vk_swapchain.h">
+    <ClInclude Include="src\Graphics\vk_Swapchain.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

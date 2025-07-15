@@ -1,23 +1,23 @@
 #pragma once
 
-#include "../Graphics/vk_context.h"
-#include "../Util/types.h"
+#include "../Graphics/vk_Context.h"
+#include "../Util/Types.h"
 
 class Buffer
 {
 public:
 
-	void init(VulkanContext& context);
-	void cleanup();
+	void Init(VulkanContext& context);
+	void Cleanup();
 
-	VkBuffer getStagingBuffer() { return _staging_buffer; };
+	VkBuffer GetStagingBuffer() { return m_staging_buffer; };
 
 private:
 
-	void create_staging_buffer();
-	VkBuffer _staging_buffer;
+	void CreateStagingBuffer();
+	VkBuffer m_staging_buffer;
 	VmaAllocator temp_allocator;
-	VmaAllocation _staging_buffer_allocation;
+	VmaAllocation m_staging_buffer_allocation;
 
 };
 

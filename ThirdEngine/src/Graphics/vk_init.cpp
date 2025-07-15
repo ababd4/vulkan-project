@@ -1,4 +1,4 @@
-#include "vk_init.h"
+#include "vk_Init.h"
 
 VkPipelineShaderStageCreateInfo vkinit::pipeline_shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry/* = "main" */)
 {

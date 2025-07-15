@@ -1,6 +1,6 @@
-#include "vk_pipeline.h"
+#include "vk_Pipeline.h"
 
-void PipelineBuilder::clear()
+void PipelineBuilder::Clear()
 {
     // clear all of the structs we need back to 0 with their correct stype
 
@@ -21,7 +21,7 @@ void PipelineBuilder::clear()
     _shaderStages.clear();
 }
 
-VkPipeline PipelineBuilder::build_pipeline(VkDevice device)
+VkPipeline PipelineBuilder::BuildPipeline(VkDevice device)
 {
     // make viewport state from our stored viewport and scissor.
    // at the moment we wont support multiple viewports or scissors
@@ -233,7 +233,7 @@ void PipelineBuilder::disable_rasterizer()
 //	VK_CHECK(vkCreateShaderModule(device, &shader_module_create_info, nullptr, outShaderModule));
 //}
 
-bool vkutil::load_shader_module(const char* filePath, VkDevice device, VkShaderModule* outShaderModule)
+bool vkutil::LoadShaderModule(const char* filePath, VkDevice device, VkShaderModule* outShaderModule)
 {
     // open the file. With cursor at the end
     std::ifstream file(filePath, std::ios::ate | std::ios::binary);

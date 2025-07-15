@@ -1,14 +1,14 @@
-#include "vk_buffer.h"
+#include "vk_Buffer.h"
 
-#include "../Util/util.h"
+#include "../Util/Util.h"
 
-void Buffer::init(VulkanContext& context)
+void Buffer::Init(VulkanContext& context)
 {
 	temp_allocator = context.GetAllocator();
-	create_staging_buffer();
+	CreateStagingBuffer();
 }
 
-void Buffer::create_staging_buffer()
+void Buffer::CreateStagingBuffer()
 {
 	VmaAllocationCreateInfo staging_buffer_allocate_info{};
 
@@ -28,13 +28,13 @@ void Buffer::create_staging_buffer()
 		temp_allocator, 
 		&buffer_create_info, 
 		&staging_buffer_allocate_info, 
-		&_staging_buffer, 
-		&_staging_buffer_allocation, 
+		&m_staging_buffer, 
+		&m_staging_buffer_allocation, 
 		nullptr) 
 	);
 }
 
-void Buffer::cleanup()
+void Buffer::Cleanup()
 {
-	vmaDestroyBuffer(temp_allocator, _staging_buffer, _staging_buffer_allocation);
+	vmaDestroyBuffer(temp_allocator, m_staging_buffer, m_staging_buffer_allocation);
 }

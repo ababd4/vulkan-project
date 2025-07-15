@@ -1,8 +1,8 @@
 #include "vk_swapchain.h"
 
 #include "VkBootstrap/VkBootstrap.h"
-#include "../Graphics/vk_init.h"
-#include "../Util/util.h"
+#include "../Graphics/vk_Init.h"
+#include "../Util/Util.h"
 
 void Swapchain::init(VulkanContext* context, uint32_t width, uint32_t height)
 {

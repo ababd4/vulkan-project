@@ -143,29 +143,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\engine.cpp" />
-    <ClCompile Include="src\Graphics\Descriptor\vk_Descriptors.cpp" />
-    <ClCompile Include="src\Graphics\vk_swapchain.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Graphics\vk_context.cpp" />
-    <ClCompile Include="src\Graphics\vk_buffer.cpp" />
-    <ClCompile Include="src\Graphics\vk_renderer.cpp" />
+    <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\Graphics\vk_Descriptors.cpp" />
+    <ClCompile Include="src\Graphics\vk_Swapchain.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Graphics\vk_Context.cpp" />
+    <ClCompile Include="src\Graphics\vk_Buffer.cpp" />
+    <ClCompile Include="src\Graphics\vk_Renderer.cpp" />
     <ClCompile Include="src\Window\Window.cpp" />
     <ClCompile Include="vendor\include\vma\vk_mem_alloc.cpp" />
-    <ClCompile Include="src\Graphics\vk_pipeline.cpp" />
-    <ClCompile Include="src\Graphics\vk_init.cpp" />
+    <ClCompile Include="src\Graphics\vk_Pipeline.cpp" />
+    <ClCompile Include="src\Graphics\vk_Init.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\engine.h" />
-    <ClInclude Include="src\Graphics\vk_context.h" />
-    <ClInclude Include="src\Graphics\Descriptor\vk_Descriptors.h" />
-    <ClInclude Include="src\Graphics\vk_swapchain.h" />
-    <ClInclude Include="src\Util\types.h" />
-    <ClInclude Include="src\Util\util.h" />
-    <ClInclude Include="src\Graphics\vk_buffer.h" />
-    <ClInclude Include="src\Graphics\vk_renderer.h" />
-    <ClInclude Include="src\Graphics\vk_pipeline.h" />
-    <ClInclude Include="src\Graphics\vk_init.h" />
+    <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\Graphics\vk_Context.h" />
+    <ClInclude Include="src\Graphics\vk_Descriptors.h" />
+    <ClInclude Include="src\Graphics\vk_Swapchain.h" />
+    <ClInclude Include="src\Util\Types.h" />
+    <ClInclude Include="src\Util\Util.h" />
+    <ClInclude Include="src\Graphics\vk_Buffer.h" />
+    <ClInclude Include="src\Graphics\vk_Renderer.h" />
+    <ClInclude Include="src\Graphics\vk_Pipeline.h" />
+    <ClInclude Include="src\Graphics\vk_Init.h" />
     <ClInclude Include="src\Window\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

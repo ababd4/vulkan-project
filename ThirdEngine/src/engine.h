@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Graphics/vk_context.h"
-#include "Graphics/vk_renderer.h"
+#include "Graphics/vk_Context.h"
+#include "Graphics/vk_Renderer.h"
 #include "Window/Window.h"
 
 class ThirdEngine

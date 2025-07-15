@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Util/types.h"
-#include "../../Util/util.h"
+#include "../Util/Types.h"
+#include "../Util/Util.h"
 
 #include <deque>
 #include <span>
