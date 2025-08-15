@@ -1,6 +1,8 @@
 #include "vk_Init.h"
 
-VkPipelineShaderStageCreateInfo vkinit::pipeline_shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry/* = "main" */)
+#include <array>
+
+VkPipelineShaderStageCreateInfo vkinit::CreatePipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry/* = "main" */)
 {
     VkPipelineShaderStageCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -15,7 +17,7 @@ VkPipelineShaderStageCreateInfo vkinit::pipeline_shader_stage_create_info(VkShad
     return info;
 }
 
-VkPipelineLayoutCreateInfo vkinit::pipeline_layout_create_info()
+VkPipelineLayoutCreateInfo vkinit::CreatePipelineLayoutCreateInfo()
 {
     VkPipelineLayoutCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -30,7 +32,7 @@ VkPipelineLayoutCreateInfo vkinit::pipeline_layout_create_info()
     return info;
 }
 
-VkImageCreateInfo vkinit::image_create_info(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent)
+VkImageCreateInfo vkinit::CreateImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent)
 {
     VkImageCreateInfo info = {};
 
@@ -55,7 +57,7 @@ VkImageCreateInfo vkinit::image_create_info(VkFormat format, VkImageUsageFlags u
     return info;
 }
 
-VkImageViewCreateInfo vkinit::imageview_create_info(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags)
+VkImageViewCreateInfo vkinit::CreateImageviewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags)
 {
     VkImageViewCreateInfo info = {};
 
@@ -70,6 +72,114 @@ VkImageViewCreateInfo vkinit::imageview_create_info(VkFormat format, VkImage ima
     info.subresourceRange.baseArrayLayer = 0;
     info.subresourceRange.layerCount = 1;
     info.subresourceRange.aspectMask = aspectFlags;
+
+    return info;
+}
+
+VkCommandBufferBeginInfo vkinit::CreateCommandBufferBeginInfo()
+{
+    VkCommandBufferBeginInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    info.flags = 0;
+    info.pInheritanceInfo = nullptr;
+
+    return info;
+}
+
+VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass, VkFramebuffer frameBuffer, int32_t offset_x, int32_t offset_y, VkExtent2D extent)
+{
+    VkRenderPassBeginInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    info.renderPass = renderPass;
+    info.framebuffer = frameBuffer;
+    info.renderArea.offset = { offset_x, offset_y };
+    info.renderArea.extent = extent;
+
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+    clearValues[1].depthStencil = { 1.0f, 0 };
+
+    info.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    info.pClearValues = clearValues.data();
+
+    return info;
+}
+
+VkCommandBufferSubmitInfo vkinit::CreateCommandBufferSubmitInfo(VkCommandBuffer commandBuffer)
+{
+    VkCommandBufferSubmitInfo info{};
+
+    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+    info.pNext = nullptr;
+    info.commandBuffer = commandBuffer;
+    info.deviceMask = 0;
+
+    return info;
+}
+
+VkSemaphoreSubmitInfo vkinit::CreateSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore)
+{
+    VkSemaphoreSubmitInfo submitInfo{};
+
+    submitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+    submitInfo.pNext = nullptr;
+    submitInfo.semaphore = semaphore;
+    submitInfo.stageMask = stageMask;
+    submitInfo.deviceIndex = 0;
+    submitInfo.value = 1;
+
+    return submitInfo;
+}
+
+VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
+{
+    VkSubmitInfo2 info = {};
+
+    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+    info.pNext = nullptr;
+
+    info.waitSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
+    info.pWaitSemaphoreInfos = waitSemaphoreInfo;
+
+    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
+    info.pSignalSemaphoreInfos = signalSemaphoreInfo;
+
+    info.commandBufferInfoCount = 1;
+    info.pCommandBufferInfos = cmd;
+
+    return info;
+}
+
+VkSubmitInfo2 CreateSubmitInfo(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
+{
+    VkSubmitInfo2 info = {};
+
+    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+    info.pNext = nullptr;
+
+    info.signalSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
+    info.pSignalSemaphoreInfos = waitSemaphoreInfo;
+
+    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
+    info.pSignalSemaphoreInfos = signalSemaphoreInfo;
+
+    info.commandBufferInfoCount = 1;
+    info.pCommandBufferInfos = cmd;
+
+    return info;
+}
+
+VkPresentInfoKHR vkinit::CreatePresentInfo()
+{
+    VkPresentInfoKHR info = {};
+    info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    info.pNext = 0;
+
+    info.swapchainCount = 0;
+    info.pSwapchains = nullptr;
+    info.pWaitSemaphores = nullptr;
+    info.waitSemaphoreCount = 0;
+    info.pImageIndices = nullptr;
 
     return info;
 }

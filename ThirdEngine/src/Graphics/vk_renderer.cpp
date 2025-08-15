@@ -15,6 +15,7 @@ void Renderer::Init(VulkanContext* context, Window& window)
 	CreateRenderPass();
 	CreateFramebuffer();
 	CreatePipeline();
+	CreateSyncObjects();
 }
 
 void Renderer::Cleanup()
@@ -35,9 +36,92 @@ void Renderer::Cleanup()
 	vkDestroyRenderPass(m_context->GetDevice(), m_renderPass, nullptr);
 }
 
-void Renderer::Render()
+void Renderer::UpdateScene()
 {
 
+}
+
+void Renderer::Render()
+{
+	VK_CHECK(vkWaitForFences(m_context->GetDevice(), 1, &m_fences[currentFrameIndex], VK_TRUE, UINT64_MAX));
+
+	uint32_t imageIndex;
+	VkResult result = vkAcquireNextImageKHR(m_context->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, m_imageAvailableSemaphores[currentFrameIndex], VK_NULL_HANDLE, &imageIndex);
+
+	// TODO: resize swapchain
+	//if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+	//	recreateSwapChain();
+	//	return;
+	//}
+	//else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+	//	throw std::runtime_error("failed to acquire swap chain image!");
+	//}
+
+	// reset command buffer
+	VK_CHECK(vkResetFences(m_context->GetDevice(), 1, &m_fences[currentFrameIndex]));
+
+	// record image index to command buffer
+	RecordCommandBuffer(m_commandBuffers[currentFrameIndex], imageIndex);
+
+	// create command buffer submit info
+	VkCommandBufferSubmitInfo cmdSubmitInfo = vkinit::CreateCommandBufferSubmitInfo(m_commandBuffers[currentFrameIndex]);
+	VkSemaphoreSubmitInfo waitInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, m_imageAvailableSemaphores[currentFrameIndex]);
+	VkSemaphoreSubmitInfo signalInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, m_renderFinishedSemaphores[currentFrameIndex]);
+
+	VkSubmitInfo2 submit = vkinit::CreateSubmitInfo(&cmdSubmitInfo, &signalInfo, &waitInfo);
+
+	// submit command buffer to the queue and execute it
+	VK_CHECK(vkQueueSubmit2(m_context->GetGraphicsQueue(), 1, &submit, m_fences[currentFrameIndex]));
+
+	// prepare present
+	VkPresentInfoKHR presentInfo = vkinit::CreatePresentInfo();
+
+	VkSwapchainKHR swapchains[] = { m_swapchain.GetSwapchain() };
+	presentInfo.pSwapchains = swapchains;
+	presentInfo.swapchainCount = 1;
+
+	presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[currentFrameIndex];
+	presentInfo.waitSemaphoreCount = 1;
+
+	presentInfo.pImageIndices = &m_swapchain.GetSwapchainImages()[currentFrameIndex];
+}
+
+void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+{
+	VkCommandBufferBeginInfo beginInfo = vkinit::CreateCommandBufferBeginInfo();
+
+	VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+	VkRenderPassBeginInfo renderPassInfo = vkinit::CreateRenderPassBeginInfo(m_renderPass, m_framebuffer[currentFrameIndex], 0, 0, m_swapchain.GetSwapchainExtent());
+
+	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	// Bind the graphics pipeline
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+	// Set viewport and sicissor values
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = static_cast<float>(m_swapchain.GetSwapchainExtent().width);
+	viewport.height = static_cast<float>(m_swapchain.GetSwapchainExtent().height);
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+	VkRect2D scissor{};
+	scissor.offset = { 0, 0 };
+	scissor.extent = m_swapchain.GetSwapchainExtent();
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+	// TODO: submit vertex,index buffer
+
+	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+	// render pass can be ended
+	vkCmdEndRenderPass(commandBuffer);
+
+	VK_CHECK(vkEndCommandBuffer(commandBuffer));
 }
 
 void Renderer::CreateCommandPool()
@@ -171,7 +255,7 @@ void Renderer::CreatePipeline()
 	m_layout = layoutBuilder.build(m_context->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 	VkDescriptorSetLayout layouts[] = { m_layout };
 
-	VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::pipeline_layout_create_info();
+	VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::CreatePipelineLayoutCreateInfo();
 	pipeline_layout_info.pPushConstantRanges = &bufferRange;
 	pipeline_layout_info.pushConstantRangeCount = 1;
 	pipeline_layout_info.pSetLayouts = layouts;
@@ -192,4 +276,26 @@ void Renderer::CreatePipeline()
 
 	vkDestroyShaderModule(m_context->GetDevice(), fragmentShader, nullptr);
 	vkDestroyShaderModule(m_context->GetDevice(), vertexShader, nullptr);
+}
+
+void Renderer::CreateSyncObjects()
+{
+	m_imageAvailableSemaphores.resize(MAX_FRAME);
+	m_renderFinishedSemaphores.resize(MAX_FRAME);
+	m_fences.resize(MAX_FRAME);
+
+	VkSemaphoreCreateInfo semaphoreInfo{};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fenceInfo{};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	for (size_t i = 0; i < MAX_FRAME; i++) {
+		if (vkCreateSemaphore(m_context->GetDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(m_context->GetDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(m_context->GetDevice(), &fenceInfo, nullptr, &m_fences[i]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create semaphores!");
+		}
+	}
 }

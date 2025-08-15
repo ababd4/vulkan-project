@@ -2,13 +2,13 @@
 
 #include "../Util/Util.h"
 
-void VulkanContext::init(Window* window)
+void VulkanContext::Init(Window* window)
 {
 	create_context(window);
 	create_allocator();
 }
 
-void VulkanContext::cleanup()
+void VulkanContext::Cleanup()
 {
 	vmaDestroyAllocator(m_allocator);
 

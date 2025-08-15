@@ -93,12 +93,12 @@ void PipelineBuilder::set_shaders(VkShaderModule vertexShader, VkShaderModule fr
 
     if (vertexShader && vertexShader != nullptr) {
         _shaderStages.push_back(
-            vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, vertexShader));
+            vkinit::CreatePipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShader));
     }
 
     if (fragmentShader && fragmentShader != nullptr) {
         _shaderStages.push_back(
-            vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
+            vkinit::CreatePipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
     }
 }
 

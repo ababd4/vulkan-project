@@ -27,7 +27,7 @@ void Swapchain::init(VulkanContext* context, uint32_t width, uint32_t height)
 	drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
 	drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	VkImageCreateInfo rimg_info = vkinit::image_create_info(m_drawImage.imageFormat, drawImageUsages, drawImageExtent);
+	VkImageCreateInfo rimg_info = vkinit::CreateImageCreateInfo(m_drawImage.imageFormat, drawImageUsages, drawImageExtent);
 
 	//for the draw image, we want to allocate it from gpu local memory
 	VmaAllocationCreateInfo rimg_allocinfo = {};
@@ -38,7 +38,7 @@ void Swapchain::init(VulkanContext* context, uint32_t width, uint32_t height)
 	vmaCreateImage(m_context->GetAllocator(), &rimg_info, &rimg_allocinfo, &m_drawImage.image, &m_drawImage.allocation, nullptr);
 
 	//build a image-view for the draw image to use for rendering
-	VkImageViewCreateInfo rview_info = vkinit::imageview_create_info(m_drawImage.imageFormat, m_drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+	VkImageViewCreateInfo rview_info = vkinit::CreateImageviewCreateInfo(m_drawImage.imageFormat, m_drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	VK_CHECK(vkCreateImageView(m_context->GetDevice(), &rview_info, nullptr, &m_drawImage.imageView));
 
@@ -47,13 +47,13 @@ void Swapchain::init(VulkanContext* context, uint32_t width, uint32_t height)
 	VkImageUsageFlags depthImageUsages{};
 	depthImageUsages |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-	VkImageCreateInfo dimg_info = vkinit::image_create_info(m_depthImage.imageFormat, depthImageUsages, drawImageExtent);
+	VkImageCreateInfo dimg_info = vkinit::CreateImageCreateInfo(m_depthImage.imageFormat, depthImageUsages, drawImageExtent);
 
 	//allocate and create the image
 	vmaCreateImage(m_context->GetAllocator(), &dimg_info, &rimg_allocinfo, &m_depthImage.image, &m_depthImage.allocation, nullptr);
 
 	//build a image-view for the draw image to use for rendering
-	VkImageViewCreateInfo dview_info = vkinit::imageview_create_info(m_depthImage.imageFormat, m_depthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
+	VkImageViewCreateInfo dview_info = vkinit::CreateImageviewCreateInfo(m_depthImage.imageFormat, m_depthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	VK_CHECK(vkCreateImageView(m_context->GetDevice(), &dview_info, nullptr, &m_depthImage.imageView));
 }

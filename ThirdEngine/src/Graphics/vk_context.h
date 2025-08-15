@@ -14,8 +14,8 @@ class VulkanContext
 {
 public:
 
-	void init(Window* window);
-	void cleanup();
+	void Init(Window* window);
+	void Cleanup();
 
 	VkInstance GetInstance() { return m_instance; };
 	VkDevice GetDevice() { return m_device; };

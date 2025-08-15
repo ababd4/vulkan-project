@@ -3,7 +3,7 @@
 void ThirdEngine::init()
 {
 	m_renderWindow.init();
-	m_vulkanContext.init(&m_renderWindow);
+	m_vulkanContext.Init(&m_renderWindow);
 	m_renderer.Init(&m_vulkanContext, m_renderWindow);
 }
 
@@ -13,6 +13,7 @@ void ThirdEngine::run()
 	bool bQuit = false;
 
 	while (!bQuit) {
+		// Detect SDL Events
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT) {
 				bQuit = true;
@@ -25,11 +26,14 @@ void ThirdEngine::run()
 			}
 		}
 	}
+
+	m_renderer.UpdateScene();
+	// m_renderer.Render();
 }
 
 void ThirdEngine::cleanup()
 {
 	m_renderer.Cleanup();
-	m_vulkanContext.cleanup();
+	m_vulkanContext.Cleanup();
 	m_renderWindow.cleanup();
 }

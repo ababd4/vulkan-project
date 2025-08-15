@@ -17,6 +17,7 @@ public:
 	void Init(VulkanContext* context, Window& window);
 	void Cleanup();
 
+	void UpdateScene();
 	void Render();
 
 private:
@@ -52,6 +53,12 @@ private:
 
 	// Frame Buffer
 	std::vector<VkFramebuffer> m_framebuffer;
+	uint32_t currentFrameIndex = 0;
+
+	// Sync Object
+	std::vector<VkSemaphore> m_imageAvailableSemaphores;
+	std::vector<VkSemaphore> m_renderFinishedSemaphores;
+	std::vector<VkFence> m_fences;
 
 	void CreateCommandPool();
 	void CreateCommandBuffers();
@@ -59,5 +66,8 @@ private:
 	void CreateFramebuffer();
 	void CreatePipeline();
 	void CreateDescriptorAllocator();
+	void CreateSyncObjects();
+
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 };
 
