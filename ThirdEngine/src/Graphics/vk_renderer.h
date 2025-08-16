@@ -8,6 +8,14 @@
 #include "../Window/Window.h"
 #include "../Util/Types.h"
 
+struct FrameResource {
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
+
+	VkSemaphore swapchainSemaphore, renderSemaphore;
+	VkFence renderFence;
+};
+
 constexpr int MAX_FRAME = 2;
 
 class Renderer
@@ -22,10 +30,6 @@ public:
 
 private:
 	VulkanContext* m_context;
-	
-	// Command
-	VkCommandPool m_commandPool;
-	std::vector<VkCommandBuffer> m_commandBuffers;
 
 	// Buffer
 	Buffer m_buffer;
@@ -51,14 +55,11 @@ private:
 	// Render Pass
 	VkRenderPass m_renderPass;
 
-	// Frame Buffer
-	std::vector<VkFramebuffer> m_framebuffer;
+	// Frame
+	std::vector<VkFramebuffer> m_framebuffers;
 	uint32_t currentFrameIndex = 0;
-
-	// Sync Object
-	std::vector<VkSemaphore> m_imageAvailableSemaphores;
-	std::vector<VkSemaphore> m_renderFinishedSemaphores;
-	std::vector<VkFence> m_fences;
+	FrameResource m_frameResources[MAX_FRAME];
+	FrameResource& GetCurrentFrame() { return m_frameResources[currentFrameIndex % MAX_FRAME]; }
 
 	void CreateCommandPool();
 	void CreateCommandBuffers();

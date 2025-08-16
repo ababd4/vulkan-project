@@ -19,3 +19,4 @@ struct AllocatedImage {
 	VkExtent3D imageExtent;
 	VmaAllocation allocation;
 };
+

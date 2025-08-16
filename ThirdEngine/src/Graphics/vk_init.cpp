@@ -76,11 +76,11 @@ VkImageViewCreateInfo vkinit::CreateImageviewCreateInfo(VkFormat format, VkImage
     return info;
 }
 
-VkCommandBufferBeginInfo vkinit::CreateCommandBufferBeginInfo()
+VkCommandBufferBeginInfo vkinit::CreateCommandBufferBeginInfo(VkCommandBufferUsageFlags flags /* = 0 */)
 {
     VkCommandBufferBeginInfo info{};
     info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    info.flags = 0;
+    info.flags = flags;
     info.pInheritanceInfo = nullptr;
 
     return info;
@@ -95,9 +95,8 @@ VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass,
     info.renderArea.offset = { offset_x, offset_y };
     info.renderArea.extent = extent;
 
-    std::array<VkClearValue, 2> clearValues{};
+    std::array<VkClearValue, 1> clearValues{};
     clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
-    clearValues[1].depthStencil = { 1.0f, 0 };
 
     info.clearValueCount = static_cast<uint32_t>(clearValues.size());
     info.pClearValues = clearValues.data();
@@ -126,41 +125,22 @@ VkSemaphoreSubmitInfo vkinit::CreateSemaphoreSubmitInfo(VkPipelineStageFlags2 st
     submitInfo.semaphore = semaphore;
     submitInfo.stageMask = stageMask;
     submitInfo.deviceIndex = 0;
-    submitInfo.value = 1;
+    submitInfo.value = 0;
 
     return submitInfo;
 }
 
-VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
+VkSubmitInfo2 vkinit::CreateSubmitInfo(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
 {
     VkSubmitInfo2 info = {};
 
     info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
     info.pNext = nullptr;
 
-    info.waitSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
+    info.waitSemaphoreInfoCount = 1;
     info.pWaitSemaphoreInfos = waitSemaphoreInfo;
 
-    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
-    info.pSignalSemaphoreInfos = signalSemaphoreInfo;
-
-    info.commandBufferInfoCount = 1;
-    info.pCommandBufferInfos = cmd;
-
-    return info;
-}
-
-VkSubmitInfo2 CreateSubmitInfo(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo)
-{
-    VkSubmitInfo2 info = {};
-
-    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
-    info.pNext = nullptr;
-
-    info.signalSemaphoreInfoCount = waitSemaphoreInfo == nullptr ? 0 : 1;
-    info.pSignalSemaphoreInfos = waitSemaphoreInfo;
-
-    info.signalSemaphoreInfoCount = signalSemaphoreInfo == nullptr ? 0 : 1;
+    info.signalSemaphoreInfoCount = 1;
     info.pSignalSemaphoreInfos = signalSemaphoreInfo;
 
     info.commandBufferInfoCount = 1;

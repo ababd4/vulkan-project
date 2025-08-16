@@ -22,7 +22,7 @@ public:
 
     void Clear();
 
-    VkPipeline BuildPipeline(VkDevice device);
+    VkPipeline BuildPipeline(VkDevice device, VkRenderPass renderPass);
 
     void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
     void set_input_topology(VkPrimitiveTopology topology);

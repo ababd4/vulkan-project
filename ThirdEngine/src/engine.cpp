@@ -25,10 +25,10 @@ void ThirdEngine::run()
 				}
 			}
 		}
-	}
 
-	m_renderer.UpdateScene();
-	// m_renderer.Render();
+		m_renderer.UpdateScene();
+		m_renderer.Render();
+	}
 }
 
 void ThirdEngine::cleanup()

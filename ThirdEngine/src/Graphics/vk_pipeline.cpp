@@ -21,7 +21,7 @@ void PipelineBuilder::Clear()
     _shaderStages.clear();
 }
 
-VkPipeline PipelineBuilder::BuildPipeline(VkDevice device)
+VkPipeline PipelineBuilder::BuildPipeline(VkDevice device, VkRenderPass renderPass)
 {
     // make viewport state from our stored viewport and scissor.
    // at the moment we wont support multiple viewports or scissors
@@ -64,6 +64,7 @@ VkPipeline PipelineBuilder::BuildPipeline(VkDevice device)
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDepthStencilState = &_depthStencil;
     pipelineInfo.layout = _pipelineLayout;
+    pipelineInfo.renderPass = renderPass;
 
     VkDynamicState state[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 

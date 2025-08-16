@@ -20,15 +20,25 @@ void Renderer::Init(VulkanContext* context, Window& window)
 
 void Renderer::Cleanup()
 {
+	vkDeviceWaitIdle(m_context->GetDevice());
+
 	m_buffer.Cleanup();
 
-	for (size_t i = 0; i < m_framebuffer.size(); i++) {
-		vkDestroyFramebuffer(m_context->GetDevice(), m_framebuffer[i], nullptr);
+	for (int i = 0; i < m_framebuffers.size(); i++) {
+		vkDestroyFramebuffer(m_context->GetDevice(), m_framebuffers[i], nullptr);
+	}
+
+	for (int i = 0; i < MAX_FRAME; i++) {
+		vkDestroyCommandPool(m_context->GetDevice(), m_frameResources[i].commandPool, nullptr);
+
+		//destroy sync objects
+		vkDestroyFence(m_context->GetDevice(), m_frameResources[i].renderFence, nullptr);
+		vkDestroySemaphore(m_context->GetDevice(), m_frameResources[i].renderSemaphore, nullptr);
+		vkDestroySemaphore(m_context->GetDevice(), m_frameResources[i].swapchainSemaphore, nullptr);
 	}
 
 	m_swapchain.cleanup();
 	m_descriptorAllocator.clear(m_context->GetDevice());
-	vkDestroyCommandPool(m_context->GetDevice(), m_commandPool, nullptr);
 	vkDestroyDescriptorSetLayout(m_context->GetDevice(), m_drawImageDescriptorLayout, nullptr);
 	vkDestroyDescriptorSetLayout(m_context->GetDevice(), m_layout, nullptr);
 	vkDestroyPipeline(m_context->GetDevice(), m_pipeline, nullptr);
@@ -43,10 +53,10 @@ void Renderer::UpdateScene()
 
 void Renderer::Render()
 {
-	VK_CHECK(vkWaitForFences(m_context->GetDevice(), 1, &m_fences[currentFrameIndex], VK_TRUE, UINT64_MAX));
+	VK_CHECK(vkWaitForFences(m_context->GetDevice(), 1, &GetCurrentFrame().renderFence, VK_TRUE, UINT64_MAX));
 
-	uint32_t imageIndex;
-	VkResult result = vkAcquireNextImageKHR(m_context->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, m_imageAvailableSemaphores[currentFrameIndex], VK_NULL_HANDLE, &imageIndex);
+	uint32_t swapchainImageIndex;
+	VkResult result = vkAcquireNextImageKHR(m_context->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, GetCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
 
 	// TODO: resize swapchain
 	//if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -58,41 +68,47 @@ void Renderer::Render()
 	//}
 
 	// reset command buffer
-	VK_CHECK(vkResetFences(m_context->GetDevice(), 1, &m_fences[currentFrameIndex]));
+	VK_CHECK(vkResetFences(m_context->GetDevice(), 1, &GetCurrentFrame().renderFence));
 
+	VK_CHECK(vkResetCommandBuffer(GetCurrentFrame().commandBuffer, 0));
 	// record image index to command buffer
-	RecordCommandBuffer(m_commandBuffers[currentFrameIndex], imageIndex);
+	RecordCommandBuffer(GetCurrentFrame().commandBuffer, swapchainImageIndex);
 
 	// create command buffer submit info
-	VkCommandBufferSubmitInfo cmdSubmitInfo = vkinit::CreateCommandBufferSubmitInfo(m_commandBuffers[currentFrameIndex]);
-	VkSemaphoreSubmitInfo waitInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, m_imageAvailableSemaphores[currentFrameIndex]);
-	VkSemaphoreSubmitInfo signalInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, m_renderFinishedSemaphores[currentFrameIndex]);
+	VkCommandBufferSubmitInfo cmdSubmitInfo = vkinit::CreateCommandBufferSubmitInfo(GetCurrentFrame().commandBuffer);
+	VkSemaphoreSubmitInfo waitInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, GetCurrentFrame().swapchainSemaphore);
+	VkSemaphoreSubmitInfo signalInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, GetCurrentFrame().renderSemaphore);
 
 	VkSubmitInfo2 submit = vkinit::CreateSubmitInfo(&cmdSubmitInfo, &signalInfo, &waitInfo);
 
 	// submit command buffer to the queue and execute it
-	VK_CHECK(vkQueueSubmit2(m_context->GetGraphicsQueue(), 1, &submit, m_fences[currentFrameIndex]));
+	VK_CHECK(vkQueueSubmit2(m_context->GetGraphicsQueue(), 1, &submit, GetCurrentFrame().renderFence));
 
 	// prepare present
 	VkPresentInfoKHR presentInfo = vkinit::CreatePresentInfo();
 
 	VkSwapchainKHR swapchains[] = { m_swapchain.GetSwapchain() };
-	presentInfo.pSwapchains = swapchains;
 	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapchains;
 
-	presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[currentFrameIndex];
 	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = &GetCurrentFrame().renderSemaphore;
 
-	presentInfo.pImageIndices = &m_swapchain.GetSwapchainImages()[currentFrameIndex];
+	presentInfo.pImageIndices = &swapchainImageIndex;
+
+	VkResult presentResult = vkQueuePresentKHR(m_context->GetGraphicsQueue(), &presentInfo);
+
+	// increase frame index
+	currentFrameIndex = (currentFrameIndex + 1) % MAX_FRAME;
 }
 
 void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
-	VkCommandBufferBeginInfo beginInfo = vkinit::CreateCommandBufferBeginInfo();
+	VkCommandBufferBeginInfo beginInfo = vkinit::CreateCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
 	VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
-	VkRenderPassBeginInfo renderPassInfo = vkinit::CreateRenderPassBeginInfo(m_renderPass, m_framebuffer[currentFrameIndex], 0, 0, m_swapchain.GetSwapchainExtent());
+	VkRenderPassBeginInfo renderPassInfo = vkinit::CreateRenderPassBeginInfo(m_renderPass, m_framebuffers[imageIndex], 0, 0, m_swapchain.GetSwapchainExtent());
 
 	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -126,26 +142,28 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 
 void Renderer::CreateCommandPool()
 {
-	VkCommandPoolCreateInfo command_pool_create_info{};
-	command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	command_pool_create_info.pNext = nullptr;
-	command_pool_create_info.flags = 0;
-	command_pool_create_info.queueFamilyIndex = m_context->GetQueueFamilyIndex();
+	for (int i = 0; i < MAX_FRAME; i++) {
+		VkCommandPoolCreateInfo command_pool_create_info{};
+		command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		command_pool_create_info.pNext = nullptr;
+		command_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		command_pool_create_info.queueFamilyIndex = m_context->GetQueueFamilyIndex();
 
-	VK_CHECK( vkCreateCommandPool(m_context->GetDevice(), &command_pool_create_info, nullptr, &m_commandPool) );
+		VK_CHECK(vkCreateCommandPool(m_context->GetDevice(), &command_pool_create_info, nullptr, &m_frameResources[i].commandPool));
+	}
 }
 
 void Renderer::CreateCommandBuffers()
 {
-	m_commandBuffers.resize(MAX_FRAME);
+	for (int i = 0; i < MAX_FRAME; i++) {
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = m_frameResources[i].commandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = 1;
 
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = m_commandPool;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
-
-	VK_CHECK( vkAllocateCommandBuffers(m_context->GetDevice(), &allocInfo, m_commandBuffers.data()) );
+		VK_CHECK(vkAllocateCommandBuffers(m_context->GetDevice(), &allocInfo, &m_frameResources[i].commandBuffer));
+	}
 }
 
 void Renderer::CreateDescriptorAllocator()
@@ -211,7 +229,7 @@ void Renderer::CreateRenderPass()
 
 void Renderer::CreateFramebuffer()
 {
-	m_framebuffer.resize(m_swapchain.GetSwapchainImageViews().size());
+	m_framebuffers.resize(m_swapchain.GetSwapchainImageViews().size());
 
 	for (size_t i = 0; i < m_swapchain.GetSwapchainImageViews().size(); i++) {
 		std::array<VkImageView, 1> attachments = {
@@ -228,7 +246,7 @@ void Renderer::CreateFramebuffer()
 		framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferCreateInfo.pAttachments = attachments.data();
 
-		VK_CHECK(vkCreateFramebuffer(m_context->GetDevice(), &framebufferCreateInfo, nullptr, &m_framebuffer[i]));
+		VK_CHECK(vkCreateFramebuffer(m_context->GetDevice(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]));
 	}
 }
 
@@ -269,10 +287,10 @@ void Renderer::CreatePipeline()
 	pipelineBuilder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
 	pipelineBuilder.set_multisampling_none();
 	pipelineBuilder.disable_blending();
-	pipelineBuilder.enable_depthtest(true, VK_COMPARE_OP_LESS);
+	pipelineBuilder.enable_depthtest(false, VK_COMPARE_OP_LESS);
 
 	pipelineBuilder._pipelineLayout = m_pipelineLayout;
-	m_pipeline = pipelineBuilder.BuildPipeline(m_context->GetDevice());
+	m_pipeline = pipelineBuilder.BuildPipeline(m_context->GetDevice(), m_renderPass);
 
 	vkDestroyShaderModule(m_context->GetDevice(), fragmentShader, nullptr);
 	vkDestroyShaderModule(m_context->GetDevice(), vertexShader, nullptr);
@@ -280,10 +298,6 @@ void Renderer::CreatePipeline()
 
 void Renderer::CreateSyncObjects()
 {
-	m_imageAvailableSemaphores.resize(MAX_FRAME);
-	m_renderFinishedSemaphores.resize(MAX_FRAME);
-	m_fences.resize(MAX_FRAME);
-
 	VkSemaphoreCreateInfo semaphoreInfo{};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -292,10 +306,8 @@ void Renderer::CreateSyncObjects()
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 	for (size_t i = 0; i < MAX_FRAME; i++) {
-		if (vkCreateSemaphore(m_context->GetDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(m_context->GetDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(m_context->GetDevice(), &fenceInfo, nullptr, &m_fences[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create semaphores!");
-		}
+		VK_CHECK(vkCreateSemaphore(m_context->GetDevice(), &semaphoreInfo, nullptr, &m_frameResources[i].swapchainSemaphore));
+		VK_CHECK(vkCreateSemaphore(m_context->GetDevice(), &semaphoreInfo, nullptr, &m_frameResources[i].renderSemaphore));
+		VK_CHECK(vkCreateFence(m_context->GetDevice(), &fenceInfo, nullptr, &m_frameResources[i].renderFence));
 	}
 }
