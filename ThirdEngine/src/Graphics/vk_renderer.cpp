@@ -108,7 +108,9 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 
 	VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
-	VkRenderPassBeginInfo renderPassInfo = vkinit::CreateRenderPassBeginInfo(m_renderPass, m_framebuffers[imageIndex], 0, 0, m_swapchain.GetSwapchainExtent());
+	VkClearValue clear{};
+	clear.color = { {0.f, 0.f, 1.f, 1.f} };
+	VkRenderPassBeginInfo renderPassInfo = vkinit::CreateRenderPassBeginInfo(m_renderPass, m_framebuffers[imageIndex], 0, 0, m_swapchain.GetSwapchainExtent(), &clear);
 
 	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 

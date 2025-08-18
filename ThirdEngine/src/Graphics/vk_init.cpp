@@ -86,7 +86,7 @@ VkCommandBufferBeginInfo vkinit::CreateCommandBufferBeginInfo(VkCommandBufferUsa
     return info;
 }
 
-VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass, VkFramebuffer frameBuffer, int32_t offset_x, int32_t offset_y, VkExtent2D extent)
+VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass, VkFramebuffer frameBuffer, int32_t offset_x, int32_t offset_y, VkExtent2D extent, const VkClearValue* clear)
 {
     VkRenderPassBeginInfo info{};
     info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -94,12 +94,8 @@ VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass,
     info.framebuffer = frameBuffer;
     info.renderArea.offset = { offset_x, offset_y };
     info.renderArea.extent = extent;
-
-    std::array<VkClearValue, 1> clearValues{};
-    clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
-
-    info.clearValueCount = static_cast<uint32_t>(clearValues.size());
-    info.pClearValues = clearValues.data();
+    info.clearValueCount = 1;
+    info.pClearValues = clear;
 
     return info;
 }
