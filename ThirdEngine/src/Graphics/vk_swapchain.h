@@ -1,12 +1,12 @@
 #pragma once
 
 #include "../Graphics/vk_Context.h"
-#include "../Util/Types.h"
+#include "vk_Types.h"
 
 class Swapchain {
 public:
-	void init(VulkanContext* context, uint32_t width, uint32_t height);
-	void cleanup();
+	void Init(VulkanContext* context, uint32_t width, uint32_t height);
+	void Cleanup();
 
 	VkSwapchainKHR GetSwapchain() { return m_swapchain; }
 	VkFormat GetSwapchainImageFormat() { return m_swapchainImageFormat; }

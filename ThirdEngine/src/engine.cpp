@@ -2,9 +2,10 @@
 
 void ThirdEngine::init()
 {
-	m_renderWindow.init();
+	m_renderWindow.Init();
 	m_vulkanContext.Init(&m_renderWindow);
-	m_renderer.Init(&m_vulkanContext, m_renderWindow);
+	m_pipelineManager.Init(&m_vulkanContext);
+	m_renderer.Init(&m_vulkanContext, m_renderWindow, &m_pipelineManager);
 }
 
 void ThirdEngine::run()
@@ -34,6 +35,7 @@ void ThirdEngine::run()
 void ThirdEngine::cleanup()
 {
 	m_renderer.Cleanup();
+	m_pipelineManager.Cleanup();
 	m_vulkanContext.Cleanup();
-	m_renderWindow.cleanup();
+	m_renderWindow.Cleanup();
 }

@@ -1,0 +1,23 @@
+#pragma once
+
+#include "vk_PipelineBuilder.h"
+#include "../vk_Types.h"
+#include "../vk_Context.h"
+#include <unordered_map>
+#include <string>
+
+class PipelineManager {
+public:
+	void Init(VulkanContext* context);
+	void Cleanup();
+	VkPipeline GetPipeline(PipelineDesc desc);
+
+private:
+	VulkanContext* m_pContext;
+
+	std::unordered_map<PipelineDesc, VkPipeline, PipelineDescHash> m_pipelines;
+	PipelineBuilder m_PipelineBuilder;
+
+	VkPipeline BuildPipeline(PipelineDesc desc);
+};
+

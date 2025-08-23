@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Graphics/vk_Context.h"
-#include "../Util/Types.h"
+#include "vk_Types.h"
 
 class Buffer
 {

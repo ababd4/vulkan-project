@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\Graphics\Pipeline\vk_PipelineBuilder.cpp" />
     <ClCompile Include="src\Graphics\vk_Descriptors.cpp" />
     <ClCompile Include="src\Graphics\vk_Swapchain.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -152,21 +153,22 @@
     <ClCompile Include="src\Graphics\vk_Renderer.cpp" />
     <ClCompile Include="src\Window\Window.cpp" />
     <ClCompile Include="vendor\include\vma\vk_mem_alloc.cpp" />
-    <ClCompile Include="src\Graphics\vk_Pipeline.cpp" />
     <ClCompile Include="src\Graphics\vk_Init.cpp" />
+    <ClCompile Include="src\Graphics\Pipeline\vk_PipelineManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\Graphics\vk_Context.h" />
     <ClInclude Include="src\Graphics\vk_Descriptors.h" />
     <ClInclude Include="src\Graphics\vk_Swapchain.h" />
-    <ClInclude Include="src\Util\Types.h" />
+    <ClInclude Include="src\Graphics\vk_Types.h" />
     <ClInclude Include="src\Util\Util.h" />
     <ClInclude Include="src\Graphics\vk_Buffer.h" />
     <ClInclude Include="src\Graphics\vk_Renderer.h" />
-    <ClInclude Include="src\Graphics\vk_Pipeline.h" />
+    <ClInclude Include="src\Graphics\Pipeline\vk_PipelineBuilder.h" />
     <ClInclude Include="src\Graphics\vk_Init.h" />
     <ClInclude Include="src\Window\Window.h" />
+    <ClInclude Include="src\Graphics\Pipeline\vk_PipelineManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

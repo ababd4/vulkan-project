@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Util/types.h"
+#include "vk_Types.h"
 #include "../Window/Window.h"
 #include "VkBootstrap/VkBootstrap.h"
 
@@ -43,7 +43,7 @@ private:
 	// memory allocator
 	VmaAllocator m_allocator;
 
-	void create_context(Window* window);
-	void create_allocator();
+	void CreateContext(Window* window);
+	void CreateAllocator();
 };
 

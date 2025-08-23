@@ -4,8 +4,8 @@
 
 void VulkanContext::Init(Window* window)
 {
-	create_context(window);
-	create_allocator();
+	CreateContext(window);
+	CreateAllocator();
 }
 
 void VulkanContext::Cleanup()
@@ -18,7 +18,7 @@ void VulkanContext::Cleanup()
 	vkDestroyInstance(m_instance, nullptr);
 }
 
-void VulkanContext::create_context(Window* window)
+void VulkanContext::CreateContext(Window* window)
 {
     vkb::InstanceBuilder builder;
 
@@ -72,7 +72,7 @@ void VulkanContext::create_context(Window* window)
     m_queue_family_index = vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
 }
 
-void VulkanContext::create_allocator()
+void VulkanContext::CreateAllocator()
 {
 	VmaAllocatorCreateInfo allocator_create_info{};
 	allocator_create_info.instance = m_instance;

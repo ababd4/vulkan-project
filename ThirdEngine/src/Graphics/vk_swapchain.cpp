@@ -4,7 +4,7 @@
 #include "../Graphics/vk_Init.h"
 #include "../Util/Util.h"
 
-void Swapchain::init(VulkanContext* context, uint32_t width, uint32_t height)
+void Swapchain::Init(VulkanContext* context, uint32_t width, uint32_t height)
 {
 	m_context = context;
 	
@@ -58,7 +58,7 @@ void Swapchain::init(VulkanContext* context, uint32_t width, uint32_t height)
 	VK_CHECK(vkCreateImageView(m_context->GetDevice(), &dview_info, nullptr, &m_depthImage.imageView));
 }
 
-void Swapchain::cleanup()
+void Swapchain::Cleanup()
 {
 	vkDestroySwapchainKHR(m_context->GetDevice(), m_swapchain, nullptr);
 

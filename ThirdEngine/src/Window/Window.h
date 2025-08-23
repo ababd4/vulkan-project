@@ -3,12 +3,12 @@
 #include "SDL/SDL.h"
 #include "SDL/SDL_vulkan.h"
 
-#include "../Util/types.h"
+#include "../Graphics/vk_Types.h"
 
 class Window {
 public:
-	void init();
-	void cleanup();
+	void Init();
+	void Cleanup();
 
 	SDL_Window* GetWindow() { return m_window; }
 	VkExtent2D GetWindowExtent() { return m_windowExtent; }

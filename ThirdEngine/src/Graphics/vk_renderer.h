@@ -2,11 +2,12 @@
 
 #include "../Graphics/vk_Context.h"
 #include "../Graphics/vk_Buffer.h"
-#include "../Graphics/vk_Pipeline.h"
+#include "../Graphics/Pipeline/vk_PipelineManager.h"
 #include "../Graphics/vk_Descriptors.h"
 #include "../Graphics/vk_Swapchain.h"
 #include "../Window/Window.h"
-#include "../Util/Types.h"
+#include "../Graphics/vk_Init.h"
+#include "vk_Types.h"
 
 struct FrameResource {
 	VkCommandPool commandPool;
@@ -22,21 +23,18 @@ class Renderer
 {
 public:
 
-	void Init(VulkanContext* context, Window& window);
+	void Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager);
 	void Cleanup();
 
 	void UpdateScene();
 	void Render();
 
 private:
-	VulkanContext* m_context;
+	VulkanContext* m_pContext;
+	PipelineManager* m_pPipelineManager;
 
 	// Buffer
 	Buffer m_buffer;
-
-	// Pipeline
-	VkPipeline m_pipeline;
-	VkPipelineLayout m_pipelineLayout;
 
 	// Push Constants
 	GPUDrawPushConstants m_pushConstants;
@@ -49,11 +47,15 @@ private:
 	VkDescriptorSet m_drawImageDescriptors;
 	VkDescriptorSetLayout m_drawImageDescriptorLayout;
 
+	// Pipeline Description
+	std::vector<PipelineDesc> m_pipelineDesc;
+
 	// Swapchain
 	Swapchain m_swapchain;
 
 	// Render Pass
 	VkRenderPass m_renderPass;
+	uint32_t subpass;
 
 	// Frame
 	std::vector<VkFramebuffer> m_framebuffers;
@@ -65,8 +67,8 @@ private:
 	void CreateCommandBuffers();
 	void CreateRenderPass();
 	void CreateFramebuffer();
-	void CreatePipeline();
 	void CreateDescriptorAllocator();
+	void CreatePipeline();
 	void CreateSyncObjects();
 
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);

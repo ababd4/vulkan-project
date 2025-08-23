@@ -1,6 +1,6 @@
 #include "Window.h"
 
-void Window::init()
+void Window::Init()
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
@@ -15,7 +15,7 @@ void Window::init()
 	);
 }
 
-void Window::cleanup()
+void Window::Cleanup()
 {
 	SDL_DestroyWindow(m_window);
 }

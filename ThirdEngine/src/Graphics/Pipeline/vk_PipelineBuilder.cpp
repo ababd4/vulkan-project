@@ -1,4 +1,4 @@
-#include "vk_Pipeline.h"
+#include "vk_PipelineBuilder.h"
 
 void PipelineBuilder::Clear()
 {
@@ -21,7 +21,7 @@ void PipelineBuilder::Clear()
     _shaderStages.clear();
 }
 
-VkPipeline PipelineBuilder::BuildPipeline(VkDevice device, VkRenderPass renderPass)
+VkPipeline PipelineBuilder::BuildPipeline(VkDevice device, VkRenderPass renderPass, uint32_t subpass)
 {
     // make viewport state from our stored viewport and scissor.
    // at the moment we wont support multiple viewports or scissors
@@ -65,6 +65,7 @@ VkPipeline PipelineBuilder::BuildPipeline(VkDevice device, VkRenderPass renderPa
     pipelineInfo.pDepthStencilState = &_depthStencil;
     pipelineInfo.layout = _pipelineLayout;
     pipelineInfo.renderPass = renderPass;
+    pipelineInfo.subpass = subpass;
 
     VkDynamicState state[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
@@ -234,7 +235,7 @@ void PipelineBuilder::disable_rasterizer()
 //	VK_CHECK(vkCreateShaderModule(device, &shader_module_create_info, nullptr, outShaderModule));
 //}
 
-bool vkutil::LoadShaderModule(const char* filePath, VkDevice device, VkShaderModule* outShaderModule)
+bool vkutil::LoadShaderModule(std::string filePath, VkDevice device, VkShaderModule* outShaderModule)
 {
     // open the file. With cursor at the end
     std::ifstream file(filePath, std::ios::ate | std::ios::binary);
