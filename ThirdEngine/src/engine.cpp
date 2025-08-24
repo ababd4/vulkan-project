@@ -1,5 +1,8 @@
 #include "Engine.h"
 
+#include <chrono>
+#include <thread>
+
 void ThirdEngine::init()
 {
 	m_renderWindow.Init();
@@ -25,6 +28,21 @@ void ThirdEngine::run()
 					bQuit = true;
 				}
 			}
+
+			if (e.type == SDL_WINDOWEVENT) {
+				if (e.window.event == SDL_WINDOWEVENT_MINIMIZED) {
+					stopRendering = true;
+				} 
+				if (e.window.event == SDL_WINDOWEVENT_RESTORED) {
+					stopRendering = false;
+				}
+			}
+		}
+
+		// don't draw if the window is minimized
+		if (stopRendering) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			continue;
 		}
 
 		m_renderer.UpdateScene();

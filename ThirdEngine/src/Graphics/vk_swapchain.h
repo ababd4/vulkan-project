@@ -17,7 +17,7 @@ public:
 	AllocatedImage GetDepthImage() { return m_depthImage; }
 
 private:
-	VulkanContext* m_context;
+	VulkanContext* m_pContext;
 
 	VkSwapchainKHR m_swapchain;
 	VkFormat m_swapchainImageFormat;

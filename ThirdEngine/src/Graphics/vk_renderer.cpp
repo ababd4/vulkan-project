@@ -57,14 +57,14 @@ void Renderer::Render()
 	uint32_t swapchainImageIndex;
 	VkResult result = vkAcquireNextImageKHR(m_pContext->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, GetCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
 
-	// TODO: resize swapchain
-	//if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-	//	recreateSwapChain();
-	//	return;
-	//}
-	//else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-	//	throw std::runtime_error("failed to acquire swap chain image!");
-	//}
+	// resize swapchain
+	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		RecreateSwapchain();
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("failed to acquire swap chain image!");
+	}
 
 	// reset command buffer
 	VK_CHECK(vkResetFences(m_pContext->GetDevice(), 1, &GetCurrentFrame().renderFence));
@@ -139,6 +139,20 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 	vkCmdEndRenderPass(commandBuffer);
 
 	VK_CHECK(vkEndCommandBuffer(commandBuffer));
+}
+
+void Renderer::RecreateSwapchain()
+{
+	vkDeviceWaitIdle(m_pContext->GetDevice());
+
+	m_swapchain.Cleanup();
+	// destroy framebuffer
+	for (int i = 0; i < m_framebuffers.size(); i++) {
+		vkDestroyFramebuffer(m_pContext->GetDevice(), m_framebuffers[i], nullptr);
+	}
+
+	m_swapchain.Init(m_pContext, m_swapchain.GetSwapchainExtent().width, m_swapchain.GetSwapchainExtent().height);
+	CreateFramebuffer();
 }
 
 void Renderer::CreateCommandPool()

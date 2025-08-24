@@ -6,7 +6,7 @@
 
 void Swapchain::Init(VulkanContext* context, uint32_t width, uint32_t height)
 {
-	m_context = context;
+	m_pContext = context;
 	
 	create_swapchain(width, height);
 
@@ -35,12 +35,12 @@ void Swapchain::Init(VulkanContext* context, uint32_t width, uint32_t height)
 	rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	//allocate and create the image
-	vmaCreateImage(m_context->GetAllocator(), &rimg_info, &rimg_allocinfo, &m_drawImage.image, &m_drawImage.allocation, nullptr);
+	vmaCreateImage(m_pContext->GetAllocator(), &rimg_info, &rimg_allocinfo, &m_drawImage.image, &m_drawImage.allocation, nullptr);
 
 	//build a image-view for the draw image to use for rendering
 	VkImageViewCreateInfo rview_info = vkinit::CreateImageviewCreateInfo(m_drawImage.imageFormat, m_drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
 
-	VK_CHECK(vkCreateImageView(m_context->GetDevice(), &rview_info, nullptr, &m_drawImage.imageView));
+	VK_CHECK(vkCreateImageView(m_pContext->GetDevice(), &rview_info, nullptr, &m_drawImage.imageView));
 
 	m_depthImage.imageFormat = VK_FORMAT_D32_SFLOAT;
 	m_depthImage.imageExtent = drawImageExtent;
@@ -50,32 +50,32 @@ void Swapchain::Init(VulkanContext* context, uint32_t width, uint32_t height)
 	VkImageCreateInfo dimg_info = vkinit::CreateImageCreateInfo(m_depthImage.imageFormat, depthImageUsages, drawImageExtent);
 
 	//allocate and create the image
-	vmaCreateImage(m_context->GetAllocator(), &dimg_info, &rimg_allocinfo, &m_depthImage.image, &m_depthImage.allocation, nullptr);
+	vmaCreateImage(m_pContext->GetAllocator(), &dimg_info, &rimg_allocinfo, &m_depthImage.image, &m_depthImage.allocation, nullptr);
 
 	//build a image-view for the draw image to use for rendering
 	VkImageViewCreateInfo dview_info = vkinit::CreateImageviewCreateInfo(m_depthImage.imageFormat, m_depthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
 
-	VK_CHECK(vkCreateImageView(m_context->GetDevice(), &dview_info, nullptr, &m_depthImage.imageView));
+	VK_CHECK(vkCreateImageView(m_pContext->GetDevice(), &dview_info, nullptr, &m_depthImage.imageView));
 }
 
 void Swapchain::Cleanup()
 {
-	vkDestroySwapchainKHR(m_context->GetDevice(), m_swapchain, nullptr);
+	vkDestroySwapchainKHR(m_pContext->GetDevice(), m_swapchain, nullptr);
 
-	vkDestroyImageView(m_context->GetDevice(), m_drawImage.imageView, nullptr);
-	vmaDestroyImage(m_context->GetAllocator(), m_drawImage.image, m_drawImage.allocation);
+	vkDestroyImageView(m_pContext->GetDevice(), m_drawImage.imageView, nullptr);
+	vmaDestroyImage(m_pContext->GetAllocator(), m_drawImage.image, m_drawImage.allocation);
 
-	vkDestroyImageView(m_context->GetDevice(), m_depthImage.imageView, nullptr);
-	vmaDestroyImage(m_context->GetAllocator(), m_depthImage.image, m_depthImage.allocation);
+	vkDestroyImageView(m_pContext->GetDevice(), m_depthImage.imageView, nullptr);
+	vmaDestroyImage(m_pContext->GetAllocator(), m_depthImage.image, m_depthImage.allocation);
 
 	for (int i = 0; i < m_swapchainImageViews.size(); i++) {
-		vkDestroyImageView(m_context->GetDevice(), m_swapchainImageViews[i], nullptr);
+		vkDestroyImageView(m_pContext->GetDevice(), m_swapchainImageViews[i], nullptr);
 	}
 }
 
 void Swapchain::create_swapchain(uint32_t width, uint32_t height)
 {
-	vkb::SwapchainBuilder swapchainBuilder{ m_context->GetPhysicalDevice(), m_context->GetDevice(), m_context->GetSurface() };
+	vkb::SwapchainBuilder swapchainBuilder{ m_pContext->GetPhysicalDevice(), m_pContext->GetDevice(), m_pContext->GetSurface() };
 
 	m_swapchainImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
 

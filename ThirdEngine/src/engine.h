@@ -15,6 +15,8 @@ public:
 
 private:
 
+	bool stopRendering = false;
+
 	VulkanContext m_vulkanContext;
 	PipelineManager m_pipelineManager;
 	Renderer m_renderer;
