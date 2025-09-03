@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../Graphics/vk_Context.h"
-#include "../Graphics/vk_Buffer.h"
 #include "../Graphics/Pipeline/vk_PipelineManager.h"
+#include "../Graphics/Mesh/vk_MeshManager.h"
 #include "../Graphics/vk_Descriptors.h"
 #include "../Graphics/vk_Swapchain.h"
 #include "../Window/Window.h"
@@ -23,7 +23,7 @@ class Renderer
 {
 public:
 
-	void Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager);
+	void Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager, MeshManager* meshManager);
 	void Cleanup();
 
 	void UpdateScene();
@@ -32,9 +32,7 @@ public:
 private:
 	VulkanContext* m_pContext;
 	PipelineManager* m_pPipelineManager;
-
-	// Buffer
-	Buffer m_buffer;
+	MeshManager* m_pMeshManager;
 
 	// Push Constants
 	GPUDrawPushConstants m_pushConstants;
@@ -52,7 +50,7 @@ private:
 
 	// Swapchain
 	Swapchain m_swapchain;
-
+		
 	// Render Pass
 	VkRenderPass m_renderPass;
 	uint32_t subpass;

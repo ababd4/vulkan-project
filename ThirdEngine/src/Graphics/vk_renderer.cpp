@@ -3,13 +3,13 @@
 #include "../Util/Util.h"
 #include <array>
 
-void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager)
+void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager, MeshManager* meshManager)
 {
 	m_pContext = context;
 	m_pPipelineManager = pipelineManager;
-	m_buffer.Init(*context);
+	m_pMeshManager = meshManager;
 	m_swapchain.Init(m_pContext, window.GetWindowExtent().width, window.GetWindowExtent().height);
-
+	
 	CreateCommandPool();
 	CreateCommandBuffers();
 	CreateDescriptorAllocator();
@@ -22,8 +22,6 @@ void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pip
 void Renderer::Cleanup()
 {
 	vkDeviceWaitIdle(m_pContext->GetDevice());
-
-	m_buffer.Cleanup();
 
 	for (int i = 0; i < m_framebuffers.size(); i++) {
 		vkDestroyFramebuffer(m_pContext->GetDevice(), m_framebuffers[i], nullptr);
@@ -95,7 +93,7 @@ void Renderer::Render()
 
 	presentInfo.pImageIndices = &swapchainImageIndex;
 
-	VkResult presentResult = vkQueuePresentKHR(m_pContext->GetGraphicsQueue(), &presentInfo);
+	VkResult presentResult = vkQueuePresentKHR(m_pContext->GetPresentQueue(), &presentInfo);
 
 	// increase frame index
 	currentFrameIndex = (currentFrameIndex + 1) % MAX_FRAME;
@@ -113,9 +111,6 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 
 	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	// Bind the graphics pipeline
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineManager->GetPipeline(m_pipelineDesc[0]));
-
 	// Set viewport and sicissor values
 	VkViewport viewport{};
 	viewport.x = 0.0f;
@@ -131,9 +126,20 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 	scissor.extent = m_swapchain.GetSwapchainExtent();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	// TODO: submit vertex,index buffer
+	// Bind the graphics pipeline
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineManager->GetPipeline(m_pipelineDesc[0]));
 
 	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+	// TODO: submit vertex,index buffer
+	GPUDrawPushConstants push_constants;
+	push_constants.worldMatrix = glm::mat4{ 1.f };
+	push_constants.vertexBuffer = m_pMeshManager->GetMeshByName("rectangle").vertexBufferAddress;
+
+	vkCmdPushConstants(commandBuffer, m_pPipelineManager->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
+	vkCmdBindIndexBuffer(commandBuffer, m_pMeshManager->GetMeshByName("rectangle").indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+	vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 
 	// render pass can be ended
 	vkCmdEndRenderPass(commandBuffer);
@@ -158,13 +164,13 @@ void Renderer::RecreateSwapchain()
 void Renderer::CreateCommandPool()
 {
 	for (int i = 0; i < MAX_FRAME; i++) {
-		VkCommandPoolCreateInfo command_pool_create_info{};
-		command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		command_pool_create_info.pNext = nullptr;
-		command_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		command_pool_create_info.queueFamilyIndex = m_pContext->GetQueueFamilyIndex();
+		VkCommandPoolCreateInfo commandPoolCreateInfo{};
+		commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		commandPoolCreateInfo.pNext = nullptr;
+		commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		commandPoolCreateInfo.queueFamilyIndex = m_pContext->GetGraphicsQueueFamilyIndex();
 
-		VK_CHECK(vkCreateCommandPool(m_pContext->GetDevice(), &command_pool_create_info, nullptr, &m_frameResources[i].commandPool));
+		VK_CHECK(vkCreateCommandPool(m_pContext->GetDevice(), &commandPoolCreateInfo, nullptr, &m_frameResources[i].commandPool));
 	}
 }
 

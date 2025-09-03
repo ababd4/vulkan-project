@@ -11,12 +11,15 @@ public:
 	void Init(VulkanContext* context);
 	void Cleanup();
 	VkPipeline GetPipeline(PipelineDesc desc);
+	VkPipelineLayout GetPipelineLayout() { return m_pipelineLayout; };
 
 private:
 	VulkanContext* m_pContext;
 
 	std::unordered_map<PipelineDesc, VkPipeline, PipelineDescHash> m_pipelines;
 	PipelineBuilder m_PipelineBuilder;
+
+	VkPipelineLayout m_pipelineLayout;
 
 	VkPipeline BuildPipeline(PipelineDesc desc);
 };

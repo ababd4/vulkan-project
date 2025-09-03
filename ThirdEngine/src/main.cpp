@@ -4,9 +4,9 @@ int main(int argc, char* argv[])
 {
 	ThirdEngine engine;
 
-	engine.init();
-	engine.run();
-	engine.cleanup();
+	engine.Init();
+	engine.Run();
+	engine.Cleanup();
 
 	return 0;
 }

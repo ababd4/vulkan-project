@@ -69,7 +69,10 @@ void VulkanContext::CreateContext(Window* window)
 
     // get a graphics queue
     m_graphicsQueue = vkbDevice.get_queue(vkb::QueueType::graphics).value();
-    m_queue_family_index = vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
+    m_transferQueue = vkbDevice.get_queue(vkb::QueueType::transfer).value();
+    m_presentQueue = vkbDevice.get_queue(vkb::QueueType::present).value();
+    m_graphicsQueueFamilyIndex = vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
+    m_transferQueueFamilyIndex = vkbDevice.get_queue_index(vkb::QueueType::transfer).value();
 }
 
 void VulkanContext::CreateAllocator()
@@ -79,6 +82,7 @@ void VulkanContext::CreateAllocator()
 	allocator_create_info.physicalDevice = m_physicalDevice;
 	allocator_create_info.device = m_device;
 	//allocator_create_info.vulkanApiVersion = 0;
+    allocator_create_info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 
 	VK_CHECK( vmaCreateAllocator(&allocator_create_info, &m_allocator) );
 }

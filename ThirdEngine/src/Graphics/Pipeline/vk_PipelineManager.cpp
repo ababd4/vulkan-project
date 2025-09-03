@@ -15,6 +15,8 @@ void PipelineManager::Cleanup()
 			vkDestroyPipeline(m_pContext->GetDevice(), pipeline.second, nullptr);
 		}
 	}
+
+	vkDestroyPipelineLayout(m_pContext->GetDevice(), m_pipelineLayout, nullptr);
 }
 
 VkPipeline PipelineManager::BuildPipeline(PipelineDesc desc)
@@ -40,13 +42,13 @@ VkPipeline PipelineManager::BuildPipeline(PipelineDesc desc)
 	VkDescriptorSetLayout layout = layoutBuilder.build(m_pContext->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 	VkDescriptorSetLayout layouts[] = { layout };
 
-	VkPipelineLayout pipelineLayout;
+	//VkPipelineLayout pipelineLayout;
 	VkPipelineLayoutCreateInfo pipeline_layout_info = vkinit::CreatePipelineLayoutCreateInfo();
 	pipeline_layout_info.pPushConstantRanges = &bufferRange;
 	pipeline_layout_info.pushConstantRangeCount = 1;
 	pipeline_layout_info.pSetLayouts = layouts;
 	pipeline_layout_info.setLayoutCount = 1;
-	VK_CHECK(vkCreatePipelineLayout(m_pContext->GetDevice(), &pipeline_layout_info, nullptr, &pipelineLayout));
+	VK_CHECK(vkCreatePipelineLayout(m_pContext->GetDevice(), &pipeline_layout_info, nullptr, &m_pipelineLayout));
 
 	PipelineBuilder pipelineBuilder;
 	pipelineBuilder.set_shaders(vertexShader, fragmentShader);
@@ -57,14 +59,15 @@ VkPipeline PipelineManager::BuildPipeline(PipelineDesc desc)
 	pipelineBuilder.disable_blending();
 	pipelineBuilder.enable_depthtest(false, VK_COMPARE_OP_LESS);
 
-	pipelineBuilder._pipelineLayout = pipelineLayout;
+	pipelineBuilder._pipelineLayout = m_pipelineLayout;
 	VkPipeline pipeline = pipelineBuilder.BuildPipeline(m_pContext->GetDevice(), desc.renderPass, desc.subpass);
 	// register to pipeline list
 	m_pipelines[desc] = pipeline;
+	//m_pipelineLayout = pipelineLayout;
 
 	vkDestroyShaderModule(m_pContext->GetDevice(), vertexShader, nullptr);
 	vkDestroyShaderModule(m_pContext->GetDevice(), fragmentShader, nullptr);
-	vkDestroyPipelineLayout(m_pContext->GetDevice(), pipelineLayout, nullptr);
+	//vkDestroyPipelineLayout(m_pContext->GetDevice(), pipelineLayout, nullptr);
 	vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), layout, nullptr);
 
 	return pipeline;

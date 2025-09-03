@@ -24,7 +24,7 @@
     <ClCompile Include="src\Graphics\vk_Context.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\vk_Buffer.cpp">
+    <ClCompile Include="src\Graphics\Buffer\vk_BufferManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\vk_Renderer.cpp">
@@ -51,6 +51,9 @@
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Mesh\vk_MeshManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -62,7 +65,7 @@
     <ClInclude Include="src\Util\Util.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\vk_Buffer.h">
+    <ClInclude Include="src\Graphics\Buffer\vk_BufferManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\vk_Renderer.h">
@@ -87,6 +90,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\vk_Types.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Mesh\vk_MeshManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -133,10 +133,10 @@ VkSubmitInfo2 vkinit::CreateSubmitInfo(VkCommandBufferSubmitInfo* cmd, VkSemapho
     info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
     info.pNext = nullptr;
 
-    info.waitSemaphoreInfoCount = 1;
+    info.waitSemaphoreInfoCount = 0 ? 1 : waitSemaphoreInfo != nullptr;
     info.pWaitSemaphoreInfos = waitSemaphoreInfo;
 
-    info.signalSemaphoreInfoCount = 1;
+    info.signalSemaphoreInfoCount = 0 ? 1 : signalSemaphoreInfo != nullptr;
     info.pSignalSemaphoreInfos = signalSemaphoreInfo;
 
     info.commandBufferInfoCount = 1;

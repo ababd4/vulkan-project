@@ -3,15 +3,17 @@
 #include <chrono>
 #include <thread>
 
-void ThirdEngine::init()
+void ThirdEngine::Init()
 {
 	m_renderWindow.Init();
 	m_vulkanContext.Init(&m_renderWindow);
 	m_pipelineManager.Init(&m_vulkanContext);
-	m_renderer.Init(&m_vulkanContext, m_renderWindow, &m_pipelineManager);
+	m_bufferManager.Init(&m_vulkanContext);
+	m_meshManager.Init(&m_vulkanContext, &m_bufferManager);
+	m_renderer.Init(&m_vulkanContext, m_renderWindow, &m_pipelineManager, &m_meshManager);
 }
 
-void ThirdEngine::run()
+void ThirdEngine::Run()
 {
 	SDL_Event e;
 	bool bQuit = false;
@@ -50,10 +52,12 @@ void ThirdEngine::run()
 	}
 }
 
-void ThirdEngine::cleanup()
+void ThirdEngine::Cleanup()
 {
 	m_renderer.Cleanup();
 	m_pipelineManager.Cleanup();
+	m_bufferManager.Cleanup();
+	m_meshManager.Cleanup();
 	m_vulkanContext.Cleanup();
 	m_renderWindow.Cleanup();
 }

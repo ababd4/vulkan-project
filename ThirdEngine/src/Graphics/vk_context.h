@@ -23,8 +23,10 @@ public:
 	VkSurfaceKHR GetSurface() { return m_surface; };
 	VkQueue GetGraphicsQueue() { return m_graphicsQueue; };
 	VkQueue GetPresentQueue() { return m_presentQueue; };
+	VkQueue GetTransferQueue() { return m_transferQueue; };
 	VmaAllocator GetAllocator() { return m_allocator; };
-	uint32_t GetQueueFamilyIndex() { return m_queue_family_index; };
+	uint32_t GetGraphicsQueueFamilyIndex() { return m_graphicsQueueFamilyIndex; };
+	uint32_t GetTransferQueueFamilyIndex() { return m_transferQueueFamilyIndex; };
 
 private:
 	// vulkan
@@ -36,9 +38,11 @@ private:
 	vkb::Instance vkb_inst;
 
 	// queue
-	uint32_t m_queue_family_index = 0;
+	uint32_t m_graphicsQueueFamilyIndex = 0;
+	uint32_t m_transferQueueFamilyIndex = 0;
 	VkQueue m_graphicsQueue = VK_NULL_HANDLE;
 	VkQueue m_presentQueue = VK_NULL_HANDLE;
+	VkQueue m_transferQueue = VK_NULL_HANDLE;
 
 	// memory allocator
 	VmaAllocator m_allocator;

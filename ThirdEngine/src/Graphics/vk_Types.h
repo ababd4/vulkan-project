@@ -6,9 +6,18 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+struct AllocatedBuffer {
+	VkBuffer buffer;
+	VmaAllocation allocation;
+	VmaAllocationInfo info;
+};
+
 struct GPUDrawPushConstants {
-	// push constants
+	// proj * view
 	glm::mat4 worldMatrix;
+
+	// GPU buffer's device address
+	// Used in shaders to access vertex data directly
 	VkDeviceAddress vertexBuffer;
 };
 
@@ -18,6 +27,14 @@ struct AllocatedImage {
 	VkFormat imageFormat;
 	VkExtent3D imageExtent;
 	VmaAllocation allocation;
+};
+
+struct Vertex {
+	glm::vec3 position;
+	float uv_x;
+	glm::vec3 normal;
+	float uv_y;
+	glm::vec4 color;
 };
 
 struct PipelineDesc {
