@@ -126,12 +126,10 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 	scissor.extent = m_swapchain.GetSwapchainExtent();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	// Bind the graphics pipeline
+	// bind the graphics pipeline
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineManager->GetPipeline(m_pipelineDesc[0]));
 
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-
-	// TODO: submit vertex,index buffer
+	// submit vertex,index buffer
 	GPUDrawPushConstants push_constants;
 	push_constants.worldMatrix = glm::mat4{ 1.f };
 	push_constants.vertexBuffer = m_pMeshManager->GetMeshByName("rectangle").vertexBufferAddress;
