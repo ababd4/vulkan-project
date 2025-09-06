@@ -10,7 +10,7 @@ void ThirdEngine::Init()
 	m_pipelineManager.Init(&m_vulkanContext);
 	m_bufferManager.Init(&m_vulkanContext);
 	m_meshManager.Init(&m_vulkanContext, &m_bufferManager);
-	m_renderer.Init(&m_vulkanContext, m_renderWindow, &m_pipelineManager, &m_meshManager);
+	m_renderer.Init(&m_vulkanContext, m_renderWindow, &m_pipelineManager, &m_meshManager, &m_bufferManager);
 }
 
 void ThirdEngine::Run()
@@ -39,6 +39,8 @@ void ThirdEngine::Run()
 					stopRendering = false;
 				}
 			}
+
+			m_renderer.HandleSDLEvents(e);
 		}
 
 		// don't draw if the window is minimized

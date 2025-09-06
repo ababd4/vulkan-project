@@ -24,12 +24,12 @@ public:
 		float ratio;
 	};
 
-	void init(VkDevice device, uint32_t initialSets, std::span<PoolSizeRatio> poolRatios);
-	void clear(VkDevice device);
-	void clear_pools(VkDevice device);
-	void destroy_pools(VkDevice device);
+	void Init(VkDevice device, uint32_t initialSets, std::span<PoolSizeRatio> poolRatios);
+	void Clear(VkDevice device);
+	void ClearPools(VkDevice device);
+	void DestroyPools(VkDevice device);
 
-	VkDescriptorSet allocate(VkDevice device, VkDescriptorSetLayout layout, void* pNext = nullptr);
+	VkDescriptorSet Allocate(VkDevice device, VkDescriptorSetLayout layout, void* pNext = nullptr);
 
 private:
 	VkDescriptorPool get_pool(VkDevice device);

@@ -13,7 +13,7 @@ struct AllocatedBuffer {
 };
 
 struct GPUDrawPushConstants {
-	// proj * view
+	// model matrix
 	glm::mat4 worldMatrix;
 
 	// GPU buffer's device address
@@ -35,6 +35,12 @@ struct Vertex {
 	glm::vec3 normal;
 	float uv_y;
 	glm::vec4 color;
+};
+
+struct GPUSceneData {
+	glm::mat4 view;
+	glm::mat4 proj;
+	glm::mat4 viewproj;
 };
 
 struct PipelineDesc {

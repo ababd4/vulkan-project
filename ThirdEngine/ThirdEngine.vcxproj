@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Camera\camera.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineBuilder.cpp" />
     <ClCompile Include="src\Graphics\vk_Descriptors.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="src\Graphics\Mesh\vk_MeshManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Camera\camera.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\Graphics\vk_Context.h" />
     <ClInclude Include="src\Graphics\vk_Descriptors.h" />

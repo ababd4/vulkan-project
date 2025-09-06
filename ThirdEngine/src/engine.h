@@ -5,6 +5,7 @@
 #include "Graphics/Pipeline/vk_PipelineManager.h"
 #include "Graphics/Buffer/vk_BufferManager.h"
 #include "Graphics/Mesh/vk_MeshManager.h"
+#include "Camera/camera.h"
 #include "Window/Window.h"
 
 class ThirdEngine

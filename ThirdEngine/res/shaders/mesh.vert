@@ -1,6 +1,13 @@
 #version 460
 #extension GL_EXT_buffer_reference : require
 
+layout(set = 0, binding = 0) uniform  SceneData{   
+
+	mat4 view;
+	mat4 proj;
+	mat4 viewproj;
+} sceneData;
+
 layout (location = 0) out vec3 outColor;
 layout (location = 1) out vec2 outUV;
 
@@ -30,7 +37,7 @@ void main()
 	Vertex v = PushConstants.vertexBuffer.vertices[gl_VertexIndex];
 
 	//output data
-	gl_Position = PushConstants.render_matrix *vec4(v.position, 1.0f);
+	gl_Position = sceneData.viewproj * PushConstants.render_matrix *vec4(v.position, 1.0f);
 	outColor = v.color.xyz;
 	outUV.x = v.uv_x;
 	outUV.y = v.uv_y;

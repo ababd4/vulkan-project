@@ -1,14 +1,19 @@
 #include "vk_renderer.h"
 
+#include "../../vendor/include/glm/gtx/transform.hpp"
+
 #include "../Util/Util.h"
 #include <array>
 
-void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager, MeshManager* meshManager)
+void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager, MeshManager* meshManager, BufferManager* bufferManager)
 {
 	m_pContext = context;
 	m_pPipelineManager = pipelineManager;
 	m_pMeshManager = meshManager;
+	m_pBufferManager = bufferManager;
+
 	m_swapchain.Init(m_pContext, window.GetWindowExtent().width, window.GetWindowExtent().height);
+	m_mainCamera.Init(glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f));
 	
 	CreateCommandPool();
 	CreateCommandBuffers();
@@ -34,18 +39,30 @@ void Renderer::Cleanup()
 		vkDestroyFence(m_pContext->GetDevice(), m_frameResources[i].renderFence, nullptr);
 		vkDestroySemaphore(m_pContext->GetDevice(), m_frameResources[i].renderSemaphore, nullptr);
 		vkDestroySemaphore(m_pContext->GetDevice(), m_frameResources[i].swapchainSemaphore, nullptr);
+
+		m_frameResources[i].deletionQueue.Flush();
+		m_frameResources[i].frameDescriptor.Clear(m_pContext->GetDevice());
 	}
 
 	m_swapchain.Cleanup();
-	m_descriptorAllocator.clear(m_pContext->GetDevice());
+	m_descriptorAllocator.Clear(m_pContext->GetDevice());
 	vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_drawImageDescriptorLayout, nullptr);
+	vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
 	vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_layout, nullptr);
 	vkDestroyRenderPass(m_pContext->GetDevice(), m_renderPass, nullptr);
 }
 
 void Renderer::UpdateScene()
 {
+	// Update camera state
+	m_mainCamera.Update();
 
+	// Update scene matrix
+	m_sceneData.view = m_mainCamera.GetViewMatrix();
+	// camera projection
+	m_sceneData.proj = glm::perspective(glm::radians(70.f), (float)m_swapchain.GetSwapchainExtent().width / (float)m_swapchain.GetSwapchainExtent().height, zNear, zFar);
+	m_sceneData.proj[1][1] *= -1;
+	m_sceneData.viewproj = m_sceneData.proj * m_sceneData.view;
 }
 
 void Renderer::Render()
@@ -54,6 +71,9 @@ void Renderer::Render()
 
 	uint32_t swapchainImageIndex;
 	VkResult result = vkAcquireNextImageKHR(m_pContext->GetDevice(), m_swapchain.GetSwapchain(), UINT64_MAX, GetCurrentFrame().swapchainSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
+
+	GetCurrentFrame().deletionQueue.Flush();
+	GetCurrentFrame().frameDescriptor.Clear(m_pContext->GetDevice());
 
 	// resize swapchain
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -99,6 +119,11 @@ void Renderer::Render()
 	currentFrameIndex = (currentFrameIndex + 1) % MAX_FRAME;
 }
 
+void Renderer::HandleSDLEvents(const SDL_Event& e) 
+{
+	m_mainCamera.ProcessSDLEvent(e);
+}
+
 void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
 	VkCommandBufferBeginInfo beginInfo = vkinit::CreateCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -125,9 +150,32 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 	scissor.offset = { 0, 0 };
 	scissor.extent = m_swapchain.GetSwapchainExtent();
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+	
+	// Create buffer for scene data
+	AllocatedBuffer gpuSceneDataBuffer = m_pBufferManager->CreateBuffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+	//add it to the deletion queue of this frame so it gets deleted once its been used
+	GetCurrentFrame().deletionQueue.PushFunction([=, this]() {
+		m_pBufferManager->DestroyBuffer(gpuSceneDataBuffer);
+	});
+
+	//write the buffer
+	void* data;
+	vmaMapMemory(m_pContext->GetAllocator(), gpuSceneDataBuffer.allocation, &data);
+	memcpy(data, &m_sceneData, sizeof(GPUSceneData));
+	vmaUnmapMemory(m_pContext->GetAllocator(), gpuSceneDataBuffer.allocation);
+
+	VkDescriptorSet globalDescriptor = GetCurrentFrame().frameDescriptor.Allocate(m_pContext->GetDevice(), m_gpuSceneDataDescriptorLayout);
+
+	DescriptorWriter writer;
+	writer.write_buffer(0, gpuSceneDataBuffer.buffer, sizeof(GPUSceneData), 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+	writer.update_set(m_pContext->GetDevice(), globalDescriptor);
 
 	// bind the graphics pipeline
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineManager->GetPipeline(m_pipelineDesc[0]));
+
+	// bind descriptor set
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineManager->GetPipelineLayout(), 0, 1, &globalDescriptor, 0, nullptr);
 
 	// submit vertex,index buffer
 	GPUDrawPushConstants push_constants;
@@ -194,23 +242,42 @@ void Renderer::CreateDescriptorAllocator()
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 }
 	};
 
-	m_descriptorAllocator.init(m_pContext->GetDevice(), 10, sizes);
+	m_descriptorAllocator.Init(m_pContext->GetDevice(), 10, sizes);
 
-	//make the descriptor set layout for our compute draw
+	//make the descriptor set layout for draw image
 	{
 		std::cout << "_drawImageDescriptorLayout" << std::endl;
 		DescriptorLayoutBuilder builder;
 		builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 		m_drawImageDescriptorLayout = builder.build(m_pContext->GetDevice(), VK_SHADER_STAGE_COMPUTE_BIT);
 	}
+	// gpu scene data
+	{
+		DescriptorLayoutBuilder builder;
+		builder.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		m_gpuSceneDataDescriptorLayout = builder.build(m_pContext->GetDevice(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+	}
 
-	m_drawImageDescriptors = m_descriptorAllocator.allocate(m_pContext->GetDevice(), m_drawImageDescriptorLayout);
+	m_drawImageDescriptors = m_descriptorAllocator.Allocate(m_pContext->GetDevice(), m_drawImageDescriptorLayout);
 
 	{
 		DescriptorWriter writer;
 		writer.write_image(0, m_swapchain.GetDrawImage().imageView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 
 		writer.update_set(m_pContext->GetDevice(), m_drawImageDescriptors);
+	}
+
+	for (int i = 0; i < MAX_FRAME; i++) {
+		// create a descriptor pool
+		std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> frame_sizes = {
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 3 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4 },
+		};
+
+		m_frameResources[i].frameDescriptor = DescriptorAllocatorGrowable{};
+		m_frameResources[i].frameDescriptor.Init(m_pContext->GetDevice(), 1000, frame_sizes);
 	}
 }
 

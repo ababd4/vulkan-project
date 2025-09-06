@@ -13,6 +13,8 @@ void Window::Init()
 		m_windowExtent.height,
 		window_flags
 	);
+
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 void Window::Cleanup()
