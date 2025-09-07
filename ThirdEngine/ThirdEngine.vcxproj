@@ -153,6 +153,7 @@
     <ClCompile Include="src\Graphics\Buffer\vk_BufferManager.cpp" />
     <ClCompile Include="src\Graphics\vk_Renderer.cpp" />
     <ClCompile Include="src\Window\Window.cpp" />
+    <ClCompile Include="vendor\include\VkBootstrap\VkBootstrap.cpp" />
     <ClCompile Include="vendor\include\vma\vk_mem_alloc.cpp" />
     <ClCompile Include="src\Graphics\vk_Init.cpp" />
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineManager.cpp" />
