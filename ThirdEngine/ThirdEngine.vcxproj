@@ -120,6 +120,9 @@
       <AdditionalLibraryDirectories>$(ProjectDir)vendor\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan/vulkan-1.lib;fmt/debug/fmtd.lib;SDL/SDL2.lib;SDL/SDL2main.lib;vkbootstrap/vk-bootstrap.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D /I /R /Q "$(ProjectDir)vendor\dll\$(Configuration)\*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -141,6 +144,9 @@
       <AdditionalDependencies>vulkan/vulkan-1.lib;fmt/release/fmt.lib;SDL/SDL2.lib;SDL/SDL2main.lib;vkbootstrap/vk-bootstrap.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)vendor\lib</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D /I /R /Q "$(ProjectDir)vendor\dll\$(Configuration)\*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera\camera.cpp" />
