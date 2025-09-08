@@ -8,8 +8,30 @@ void Swapchain::Init(VulkanContext* context, uint32_t width, uint32_t height)
 {
 	m_pContext = context;
 	
-	create_swapchain(width, height);
+	CreateSwapchain(width, height);
+	CreateDrawImage(width, height);
+	CreatePresentSemaphore();
+}
 
+void Swapchain::Cleanup()
+{
+	DestroyPresentSemaphore();
+
+	vkDestroySwapchainKHR(m_pContext->GetDevice(), m_swapchain, nullptr);
+
+	vkDestroyImageView(m_pContext->GetDevice(), m_drawImage.imageView, nullptr);
+	vmaDestroyImage(m_pContext->GetAllocator(), m_drawImage.image, m_drawImage.allocation);
+
+	vkDestroyImageView(m_pContext->GetDevice(), m_depthImage.imageView, nullptr);
+	vmaDestroyImage(m_pContext->GetAllocator(), m_depthImage.image, m_depthImage.allocation);
+
+	for (int i = 0; i < m_swapchainImageViews.size(); i++) {
+		vkDestroyImageView(m_pContext->GetDevice(), m_swapchainImageViews[i], nullptr);
+	}
+}
+
+void Swapchain::CreateDrawImage(uint32_t width, uint32_t height)
+{
 	//draw image size will match the window
 	VkExtent3D drawImageExtent = {
 		width,
@@ -58,22 +80,7 @@ void Swapchain::Init(VulkanContext* context, uint32_t width, uint32_t height)
 	VK_CHECK(vkCreateImageView(m_pContext->GetDevice(), &dview_info, nullptr, &m_depthImage.imageView));
 }
 
-void Swapchain::Cleanup()
-{
-	vkDestroySwapchainKHR(m_pContext->GetDevice(), m_swapchain, nullptr);
-
-	vkDestroyImageView(m_pContext->GetDevice(), m_drawImage.imageView, nullptr);
-	vmaDestroyImage(m_pContext->GetAllocator(), m_drawImage.image, m_drawImage.allocation);
-
-	vkDestroyImageView(m_pContext->GetDevice(), m_depthImage.imageView, nullptr);
-	vmaDestroyImage(m_pContext->GetAllocator(), m_depthImage.image, m_depthImage.allocation);
-
-	for (int i = 0; i < m_swapchainImageViews.size(); i++) {
-		vkDestroyImageView(m_pContext->GetDevice(), m_swapchainImageViews[i], nullptr);
-	}
-}
-
-void Swapchain::create_swapchain(uint32_t width, uint32_t height)
+void Swapchain::CreateSwapchain(uint32_t width, uint32_t height)
 {
 	vkb::SwapchainBuilder swapchainBuilder{ m_pContext->GetPhysicalDevice(), m_pContext->GetDevice(), m_pContext->GetSurface() };
 
@@ -95,4 +102,30 @@ void Swapchain::create_swapchain(uint32_t width, uint32_t height)
 	m_swapchain = vkbSwapchain.swapchain;
 	m_swapchainImages = vkbSwapchain.get_images().value();
 	m_swapchainImageViews = vkbSwapchain.get_image_views().value();
+}
+
+void Swapchain::CreatePresentSemaphore()
+{
+	DestroyPresentSemaphore();
+	const uint32_t imageCount = GetSwapchainImages().size();
+
+	std::cout << imageCount << std::endl;
+
+	m_presentSemaphores.resize(imageCount);
+
+	VkSemaphoreCreateInfo ci{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+	for (uint32_t i = 0; i < imageCount; ++i) {
+		VK_CHECK(vkCreateSemaphore(m_pContext->GetDevice(), &ci, nullptr, &m_presentSemaphores[i]));
+	}
+}
+
+void Swapchain::DestroyPresentSemaphore()
+{
+	for (auto& semaphore : m_presentSemaphores) {
+		if (semaphore) {
+			vkDestroySemaphore(m_pContext->GetDevice(), semaphore, nullptr);
+			semaphore = VK_NULL_HANDLE;
+		}
+	}
+	m_presentSemaphores.clear();
 }

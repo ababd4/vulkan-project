@@ -91,10 +91,13 @@ void Renderer::Render()
 	// record image index to command buffer
 	RecordCommandBuffer(GetCurrentFrame().commandBuffer, swapchainImageIndex);
 
+	// get semaphore for present from swapchain
+	VkSemaphore presentSemaphore = m_swapchain.GetPresentSemaphoreByIndex(swapchainImageIndex);
+
 	// create command buffer submit info
 	VkCommandBufferSubmitInfo cmdSubmitInfo = vkinit::CreateCommandBufferSubmitInfo(GetCurrentFrame().commandBuffer);
 	VkSemaphoreSubmitInfo waitInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, GetCurrentFrame().swapchainSemaphore);
-	VkSemaphoreSubmitInfo signalInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, GetCurrentFrame().renderSemaphore);
+	VkSemaphoreSubmitInfo signalInfo = vkinit::CreateSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, presentSemaphore);
 
 	VkSubmitInfo2 submit = vkinit::CreateSubmitInfo(&cmdSubmitInfo, &signalInfo, &waitInfo);
 
@@ -109,7 +112,7 @@ void Renderer::Render()
 	presentInfo.pSwapchains = swapchains;
 
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = &GetCurrentFrame().renderSemaphore;
+	presentInfo.pWaitSemaphores = &presentSemaphore;
 
 	presentInfo.pImageIndices = &swapchainImageIndex;
 

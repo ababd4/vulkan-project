@@ -15,6 +15,7 @@ public:
 	VkExtent2D GetSwapchainExtent() { return m_swapchainExtent; }
 	AllocatedImage GetDrawImage() { return m_drawImage; }
 	AllocatedImage GetDepthImage() { return m_depthImage; }
+	VkSemaphore GetPresentSemaphoreByIndex(uint32_t imageIndex) { return m_presentSemaphores[imageIndex]; }
 
 private:
 	VulkanContext* m_pContext;
@@ -25,8 +26,14 @@ private:
 	std::vector<VkImageView> m_swapchainImageViews;
 	VkExtent2D m_swapchainExtent;
 
+	// semaphore for present image
+	std::vector<VkSemaphore> m_presentSemaphores;
+
 	AllocatedImage m_drawImage;
 	AllocatedImage m_depthImage;
 
-	void create_swapchain(uint32_t width, uint32_t height);
+	void CreateSwapchain(uint32_t width, uint32_t height);
+	void CreateDrawImage(uint32_t width, uint32_t height);
+	void CreatePresentSemaphore();
+	void DestroyPresentSemaphore();
 };
