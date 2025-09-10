@@ -3,6 +3,7 @@
 - MVP
 - Cube
 - Texture
+- Depth buffer
 - Compile shaders automatically
 - Camera
 - Model loader
