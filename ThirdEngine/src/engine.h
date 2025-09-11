@@ -5,6 +5,7 @@
 #include "Graphics/Pipeline/vk_PipelineManager.h"
 #include "Graphics/Buffer/vk_BufferManager.h"
 #include "Graphics/Mesh/vk_MeshManager.h"
+#include "Graphics/Scene/vk_Scene.h"
 #include "Camera/camera.h"
 #include "Window/Window.h"
 
@@ -25,5 +26,6 @@ private:
 	BufferManager m_bufferManager;
 	MeshManager m_meshManager;
 	Renderer m_renderer;
+	Scene m_scene;
 	Window m_renderWindow;
 };

@@ -149,7 +149,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Camera\camera.cpp" />
+    <ClCompile Include="src\Camera\Camera.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineBuilder.cpp" />
     <ClCompile Include="src\Graphics\vk_Descriptors.cpp" />
@@ -164,9 +164,12 @@
     <ClCompile Include="src\Graphics\vk_Init.cpp" />
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineManager.cpp" />
     <ClCompile Include="src\Graphics\Mesh\vk_MeshManager.cpp" />
+    <ClCompile Include="src\Graphics\Loader\vk_GltfLoader.cpp" />
+    <ClCompile Include="src\Graphics\Material\vk_MaterialManager.cpp" />
+    <ClCompile Include="src\Graphics\Scene\vk_Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Camera\camera.h" />
+    <ClInclude Include="src\Camera\Camera.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\Graphics\vk_Context.h" />
     <ClInclude Include="src\Graphics\vk_Descriptors.h" />
@@ -180,6 +183,9 @@
     <ClInclude Include="src\Window\Window.h" />
     <ClInclude Include="src\Graphics\Pipeline\vk_PipelineManager.h" />
     <ClInclude Include="src\Graphics\Mesh\vk_MeshManager.h" />
+    <ClInclude Include="src\Graphics\Loader\vk_GltfLoader.h" />
+    <ClInclude Include="src\Graphics\Material\vk_MaterialManager.h" />
+    <ClInclude Include="src\Graphics\Scene\vk_Scene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

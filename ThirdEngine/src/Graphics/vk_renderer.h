@@ -6,8 +6,8 @@
 #include "../Graphics/vk_Descriptors.h"
 #include "../Graphics/vk_Swapchain.h"
 #include "../Graphics/vk_Init.h"
+#include "../Graphics/Scene/vk_Scene.h"
 #include "../Window/Window.h"
-#include "../Camera/camera.h"
 #include "vk_Types.h"
 
 #include <../../vendor/include/SDL/SDL.h>
@@ -60,19 +60,25 @@ class Renderer
 {
 public:
 
-	void Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager, MeshManager* meshManager, BufferManager* bufferManager);
+	void Init(
+		VulkanContext* context, 
+		Window& window, 
+		PipelineManager* pipelineManager, 
+		MeshManager* meshManager, 
+		BufferManager* bufferManager, 
+		Scene* scene
+	);
+
 	void Cleanup();
 
-	void UpdateScene();
 	void Render();
-
-	void HandleSDLEvents(const SDL_Event& e);
 
 private:
 	VulkanContext* m_pContext;
 	PipelineManager* m_pPipelineManager;
 	MeshManager* m_pMeshManager;
 	BufferManager* m_pBufferManager;
+	Scene* m_pScene;
 
 	// Push Constants
 	GPUDrawPushConstants m_pushConstants;
@@ -100,11 +106,6 @@ private:
 	uint32_t currentFrameIndex = 0;
 	FrameResource m_frameResources[MAX_FRAME];
 	FrameResource& GetCurrentFrame() { return m_frameResources[currentFrameIndex % MAX_FRAME]; }
-
-	// Camera
-	Camera m_mainCamera;
-	float zNear = 0.1f;
-	float zFar = 1000.0f;
 
 	// Scene Data
 	GPUSceneData m_sceneData;

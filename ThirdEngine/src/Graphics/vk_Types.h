@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 struct AllocatedBuffer {
 	VkBuffer buffer;
@@ -41,6 +42,18 @@ struct GPUSceneData {
 	glm::mat4 view;
 	glm::mat4 proj;
 	glm::mat4 viewproj;
+};
+
+struct Transform {
+	glm::vec3 position{ 0 };
+	glm::quat rotation{ 1.f, 0.f, 0.f, 0.f };
+	glm::vec3 scale{ 1.f, 1.f, 1.f };
+};
+
+struct Entity {
+	Transform transform;
+	uint32_t meshID;
+	uint32_t materialID;
 };
 
 struct PipelineDesc {

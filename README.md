@@ -1,5 +1,6 @@
 # ThirdEngine
 ## Todo
+
 - MVP
 - Cube
 - Texture
@@ -7,6 +8,7 @@
 - Compile shaders automatically
 - Camera
 - Model loader
+- Model loading in application
 - PBR
 - Shadow mapping
 - Normal mapping

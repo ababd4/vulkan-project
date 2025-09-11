@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "Camera.h"
 
 #include <../../vendor/include/glm/glm.hpp>
 #include <../../vendor/include/glm/gtx/transform.hpp>
