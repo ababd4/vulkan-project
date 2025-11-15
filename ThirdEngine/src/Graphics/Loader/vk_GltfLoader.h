@@ -13,6 +13,7 @@ namespace GLTF
 	{
 	public:
 		void Init(VulkanContext* context, MeshManager* meshManager);
+		void LoadMesh(const std::filesystem::path path);
 
 	private:
 		VulkanContext* m_pContext;

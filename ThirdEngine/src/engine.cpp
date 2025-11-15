@@ -11,9 +11,10 @@ void ThirdEngine::Init()
 	m_bufferManager.Init(&m_vulkanContext);
 	m_meshManager.Init(&m_vulkanContext, &m_bufferManager);
 	m_renderer.Init(&m_vulkanContext, m_renderWindow, &m_pipelineManager, &m_meshManager, &m_bufferManager, &m_scene);
-
+	m_GltfLoader.Init(&m_vulkanContext, &m_meshManager);
 	m_scene.Init(&m_renderWindow);
-	m_scene.LoadEntities();
+
+	LoadModels();
 }
 
 void ThirdEngine::Run()
@@ -65,4 +66,10 @@ void ThirdEngine::Cleanup()
 	m_meshManager.Cleanup();
 	m_vulkanContext.Cleanup();
 	m_renderWindow.Cleanup();
+}
+
+void ThirdEngine::LoadModels()
+{
+	m_GltfLoader.LoadMesh("res/models/monkey.glb");
+	m_GltfLoader.LoadMesh("res/models/house.glb");
 }

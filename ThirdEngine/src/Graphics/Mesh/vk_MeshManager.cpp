@@ -14,8 +14,8 @@ void MeshManager::Init(VulkanContext* context, BufferManager* bufferManager)
 void MeshManager::Cleanup()
 {
 	for (auto& [name, mesh] : m_meshes) {
-		vmaDestroyBuffer(m_pContext->GetAllocator(), mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation);
-		vmaDestroyBuffer(m_pContext->GetAllocator(), mesh.indexBuffer.buffer, mesh.indexBuffer.allocation);
+		vmaDestroyBuffer(m_pContext->GetAllocator(), mesh.meshBuffers.vertexBuffer.buffer, mesh.meshBuffers.vertexBuffer.allocation);
+		vmaDestroyBuffer(m_pContext->GetAllocator(), mesh.meshBuffers.indexBuffer.buffer, mesh.meshBuffers.indexBuffer.allocation);
 	}
 	m_meshes.clear();
 }
@@ -78,7 +78,13 @@ void MeshManager::UploadMesh(std::string name, std::span<uint32_t> indices, std:
 
 	m_pBufferManager->DestroyBuffer(staging);
 
-	m_meshes[name] = newSurface;
+	std::cout << "Loaded: " << name << std::endl;
+	m_meshes[name].meshBuffers = newSurface;
+}
+
+void MeshManager::SetSurface(std::string name, std::vector<GeoSurface>& surface)
+{
+	m_meshes[name].surfaces = surface;
 }
 
 void MeshManager::InitDefaultData() {

@@ -1,5 +1,7 @@
 #include "vk_Scene.h"
 
+#include "../../Graphics/Loader/vk_GltfLoader.h"
+
 #include <../../vendor/include/glm/gtx/transform.hpp>
 
 void Scene::Init(Window* window)
@@ -8,11 +10,6 @@ void Scene::Init(Window* window)
 
 	m_sceneData.proj = glm::perspective(glm::radians(70.f), (float)window->GetWindowExtent().width / (float)window->GetWindowExtent().height, zNear, zFar);
 	m_sceneData.proj[1][1] *= -1;
-}
-
-void Scene::LoadEntities()
-{
-	std::cout << "Loading..." << std::endl;
 }
 
 void Scene::Update()

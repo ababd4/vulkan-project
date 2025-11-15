@@ -8,6 +8,7 @@
 #include "Graphics/Scene/vk_Scene.h"
 #include "Camera/camera.h"
 #include "Window/Window.h"
+#include "Graphics/Loader/vk_GltfLoader.h"
 
 class ThirdEngine
 {
@@ -28,4 +29,7 @@ private:
 	Renderer m_renderer;
 	Scene m_scene;
 	Window m_renderWindow;
+	GLTF::Loader m_GltfLoader;
+
+	void LoadModels();
 };

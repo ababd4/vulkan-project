@@ -7,13 +7,6 @@
 #include <span>
 #include <map>
 
-// hold the resources for mesh drawing
-struct GPUMeshBuffers {
-	AllocatedBuffer indexBuffer;
-	AllocatedBuffer vertexBuffer;
-	VkDeviceAddress vertexBufferAddress;
-};
-
 class MeshManager
 {
 public:
@@ -22,14 +15,15 @@ public:
 
 	// send vertex data to GPU Memory
 	void UploadMesh(std::string name, std::span<uint32_t> indices, std::span<Vertex> vertices);
+	void SetSurface(std::string name, std::vector<GeoSurface>& surface);
 
-	GPUMeshBuffers GetMeshByName(std::string name) { return m_meshes[name]; }
+	MeshAsset GetMeshByName(std::string name) { return m_meshes[name]; }
 
 private:
 	VulkanContext* m_pContext;
 	BufferManager* m_pBufferManager;
 
-	std::unordered_map<std::string, GPUMeshBuffers> m_meshes;
+	std::unordered_map<std::string, MeshAsset> m_meshes;
 
 	void InitDefaultData();
 };

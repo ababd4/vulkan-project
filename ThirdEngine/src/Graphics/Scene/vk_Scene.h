@@ -10,7 +10,6 @@ class Scene
 {
 public:
 	void Init(Window* window);
-	void LoadEntities();
 	void Update();
 
 	void HandleSDLEvents(const SDL_Event& e);

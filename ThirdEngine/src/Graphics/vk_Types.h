@@ -56,6 +56,25 @@ struct Entity {
 	uint32_t materialID;
 };
 
+// hold the resources for mesh drawing
+struct GPUMeshBuffers {
+	AllocatedBuffer indexBuffer;
+	AllocatedBuffer vertexBuffer;
+	VkDeviceAddress vertexBufferAddress;
+};
+
+struct GeoSurface {
+	uint32_t startIndex;
+	uint32_t count;
+};
+
+struct MeshAsset {
+	std::string name;
+
+	std::vector<GeoSurface> surfaces;
+	GPUMeshBuffers meshBuffers;
+};
+
 struct PipelineDesc {
 	std::string vert;
 	std::string frag;	

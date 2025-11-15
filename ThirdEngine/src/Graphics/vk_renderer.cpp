@@ -161,15 +161,20 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 	// bind descriptor set
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pPipelineManager->GetPipelineLayout(), 0, 1, &globalDescriptor, 0, nullptr);
 
+	std::string itemName = "Suzanne";
+
 	// submit vertex,index buffer
 	GPUDrawPushConstants push_constants;
 	push_constants.worldMatrix = glm::mat4{ 1.f };
-	push_constants.vertexBuffer = m_pMeshManager->GetMeshByName("rectangle").vertexBufferAddress;
+	push_constants.vertexBuffer = m_pMeshManager->GetMeshByName(itemName).meshBuffers.vertexBufferAddress;
 
 	vkCmdPushConstants(commandBuffer, m_pPipelineManager->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
-	vkCmdBindIndexBuffer(commandBuffer, m_pMeshManager->GetMeshByName("rectangle").indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(commandBuffer, m_pMeshManager->GetMeshByName(itemName).meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-	vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
+	// render by surface
+	for (GeoSurface& surface : m_pMeshManager->GetMeshByName(itemName).surfaces) {
+		vkCmdDrawIndexed(commandBuffer, surface.count, 1, surface.startIndex, 0, 0);
+	}
 
 	// render pass can be ended
 	vkCmdEndRenderPass(commandBuffer);
