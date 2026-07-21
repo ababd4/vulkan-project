@@ -24,9 +24,6 @@
     <ClCompile Include="src\Graphics\vk_Context.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Buffer\vk_BufferManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\vk_Renderer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -51,7 +48,7 @@
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Mesh\vk_MeshManager.cpp">
+    <ClCompile Include="src\Graphics\Asset\vk_AssetManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\Camera\Camera.cpp">
@@ -60,10 +57,7 @@
     <ClCompile Include="vendor\include\VkBootstrap\VkBootstrap.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Loader\vk_GltfLoader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Material\vk_MaterialManager.cpp">
+    <ClCompile Include="src\Graphics\Loader\GltfLoader.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Scene\vk_Scene.cpp">
@@ -78,6 +72,15 @@
     <ClCompile Include="vendor\include\fastgltf\simdjson.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Buffer\Buffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Model\vk_Model.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Model\Model.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -87,9 +90,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Util\Util.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Buffer\vk_BufferManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\vk_Renderer.h">
@@ -116,19 +116,28 @@
     <ClInclude Include="src\Graphics\vk_Types.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Mesh\vk_MeshManager.h">
+    <ClInclude Include="src\Graphics\Asset\vk_AssetManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Camera\Camera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Loader\vk_GltfLoader.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Material\vk_MaterialManager.h">
+    <ClInclude Include="src\Graphics\Loader\GltfLoader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Scene\vk_Scene.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Buffer\Buffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Model\vk_Model.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Model\Model.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -151,12 +151,13 @@
   <ItemGroup>
     <ClCompile Include="src\Camera\Camera.cpp" />
     <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\Graphics\Buffer\Buffer.cpp" />
+    <ClCompile Include="src\Graphics\Model\Model.cpp" />
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineBuilder.cpp" />
     <ClCompile Include="src\Graphics\vk_Descriptors.cpp" />
     <ClCompile Include="src\Graphics\vk_Swapchain.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Graphics\vk_Context.cpp" />
-    <ClCompile Include="src\Graphics\Buffer\vk_BufferManager.cpp" />
     <ClCompile Include="src\Graphics\vk_Renderer.cpp" />
     <ClCompile Include="src\Window\Window.cpp" />
     <ClCompile Include="vendor\include\fastgltf\base64.cpp" />
@@ -166,28 +167,28 @@
     <ClCompile Include="vendor\include\vma\vk_mem_alloc.cpp" />
     <ClCompile Include="src\Graphics\vk_Init.cpp" />
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineManager.cpp" />
-    <ClCompile Include="src\Graphics\Mesh\vk_MeshManager.cpp" />
-    <ClCompile Include="src\Graphics\Loader\vk_GltfLoader.cpp" />
-    <ClCompile Include="src\Graphics\Material\vk_MaterialManager.cpp" />
+    <ClCompile Include="src\Graphics\Asset\AssetManager.cpp" />
+    <ClCompile Include="src\Graphics\Loader\GltfLoader.cpp" />
     <ClCompile Include="src\Graphics\Scene\vk_Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Buffer.h" />
     <ClInclude Include="src\Camera\Camera.h" />
     <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\Graphics\Asset\AssetManager.h" />
+    <ClInclude Include="src\Graphics\Buffer\Buffer.h" />
+    <ClInclude Include="src\Graphics\Model\Model.h" />
     <ClInclude Include="src\Graphics\vk_Context.h" />
     <ClInclude Include="src\Graphics\vk_Descriptors.h" />
     <ClInclude Include="src\Graphics\vk_Swapchain.h" />
     <ClInclude Include="src\Graphics\vk_Types.h" />
     <ClInclude Include="src\Util\Util.h" />
-    <ClInclude Include="src\Graphics\Buffer\vk_BufferManager.h" />
     <ClInclude Include="src\Graphics\vk_Renderer.h" />
     <ClInclude Include="src\Graphics\Pipeline\vk_PipelineBuilder.h" />
     <ClInclude Include="src\Graphics\vk_Init.h" />
     <ClInclude Include="src\Window\Window.h" />
     <ClInclude Include="src\Graphics\Pipeline\vk_PipelineManager.h" />
-    <ClInclude Include="src\Graphics\Mesh\vk_MeshManager.h" />
-    <ClInclude Include="src\Graphics\Loader\vk_GltfLoader.h" />
-    <ClInclude Include="src\Graphics\Material\vk_MaterialManager.h" />
+    <ClInclude Include="src\Graphics\Loader\GltfLoader.h" />
     <ClInclude Include="src\Graphics\Scene\vk_Scene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

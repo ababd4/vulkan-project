@@ -3,15 +3,17 @@
 #include "../Util/Util.h"
 #include <array>
 
-void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager, MeshManager* meshManager, BufferManager* bufferManager, Scene* scene)
+void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pipelineManager, AssetManager* AssetManager, Scene* scene)
 {
 	m_pContext = context;
 	m_pPipelineManager = pipelineManager;
-	m_pMeshManager = meshManager;
-	m_pBufferManager = bufferManager;
+	m_pAssetManager = AssetManager;
 	m_pScene = scene;
 
 	m_swapchain.Init(m_pContext, window.GetWindowExtent().width, window.GetWindowExtent().height);
+	m_deletionQueue.PushFunction([=, this]() {
+		m_swapchain.Cleanup();
+	});
 	
 	CreateCommandPool();
 	CreateCommandBuffers();
@@ -20,34 +22,14 @@ void Renderer::Init(VulkanContext* context, Window& window, PipelineManager* pip
 	CreateFramebuffer();
 	CreatePipeline();
 	CreateSyncObjects();
+	CreateSubmitStructures();
 }
 
 void Renderer::Cleanup()
 {
 	vkDeviceWaitIdle(m_pContext->GetDevice());
 
-	for (int i = 0; i < m_framebuffers.size(); i++) {
-		vkDestroyFramebuffer(m_pContext->GetDevice(), m_framebuffers[i], nullptr);
-	}
-
-	for (int i = 0; i < MAX_FRAME; i++) {
-		vkDestroyCommandPool(m_pContext->GetDevice(), m_frameResources[i].commandPool, nullptr);
-
-		//destroy sync objects
-		vkDestroyFence(m_pContext->GetDevice(), m_frameResources[i].renderFence, nullptr);
-		vkDestroySemaphore(m_pContext->GetDevice(), m_frameResources[i].renderSemaphore, nullptr);
-		vkDestroySemaphore(m_pContext->GetDevice(), m_frameResources[i].swapchainSemaphore, nullptr);
-
-		m_frameResources[i].deletionQueue.Flush();
-		m_frameResources[i].frameDescriptor.Clear(m_pContext->GetDevice());
-	}
-
-	m_swapchain.Cleanup();
-	m_descriptorAllocator.Clear(m_pContext->GetDevice());
-	vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_drawImageDescriptorLayout, nullptr);
-	vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
-	vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_layout, nullptr);
-	vkDestroyRenderPass(m_pContext->GetDevice(), m_renderPass, nullptr);
+	m_deletionQueue.Flush();
 }
 
 void Renderer::Render()
@@ -69,9 +51,9 @@ void Renderer::Render()
 		throw std::runtime_error("failed to acquire swap chain image!");
 	}
 
-	// reset command buffer
+	
 	VK_CHECK(vkResetFences(m_pContext->GetDevice(), 1, &GetCurrentFrame().renderFence));
-
+	// reset command buffer
 	VK_CHECK(vkResetCommandBuffer(GetCurrentFrame().commandBuffer, 0));
 	// record image index to command buffer
 	RecordCommandBuffer(GetCurrentFrame().commandBuffer, swapchainImageIndex);
@@ -135,11 +117,12 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	
 	// Create buffer for scene data
-	AllocatedBuffer gpuSceneDataBuffer = m_pBufferManager->CreateBuffer(sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+	AllocatedBuffer gpuSceneDataBuffer = Buffer::CreateBuffer(m_pContext->GetAllocator(), sizeof(GPUSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
 	//add it to the deletion queue of this frame so it gets deleted once its been used
 	GetCurrentFrame().deletionQueue.PushFunction([=, this]() {
-		m_pBufferManager->DestroyBuffer(gpuSceneDataBuffer);
+		//m_pBufferManager->DestroyBuffer(gpuSceneDataBuffer);
+		vmaDestroyBuffer(m_pContext->GetAllocator(), gpuSceneDataBuffer.buffer, gpuSceneDataBuffer.allocation);
 	});
 
 	//write the buffer
@@ -166,13 +149,13 @@ void Renderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 	// submit vertex,index buffer
 	GPUDrawPushConstants push_constants;
 	push_constants.worldMatrix = glm::mat4{ 1.f };
-	push_constants.vertexBuffer = m_pMeshManager->GetMeshByName(itemName).meshBuffers.vertexBufferAddress;
+	push_constants.vertexBuffer = m_pAssetManager->GetMeshByName(itemName).meshBuffers.vertexBufferAddress;
 
 	vkCmdPushConstants(commandBuffer, m_pPipelineManager->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
-	vkCmdBindIndexBuffer(commandBuffer, m_pMeshManager->GetMeshByName(itemName).meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(commandBuffer, m_pAssetManager->GetMeshByName(itemName).meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
 	// render by surface
-	for (GeoSurface& surface : m_pMeshManager->GetMeshByName(itemName).surfaces) {
+	for (GeoSurface& surface : m_pAssetManager->GetMeshByName(itemName).surfaces) {
 		vkCmdDrawIndexed(commandBuffer, surface.count, 1, surface.startIndex, 0, 0);
 	}
 
@@ -207,6 +190,12 @@ void Renderer::CreateCommandPool()
 
 		VK_CHECK(vkCreateCommandPool(m_pContext->GetDevice(), &commandPoolCreateInfo, nullptr, &m_frameResources[i].commandPool));
 	}
+
+	m_deletionQueue.PushFunction([this]() {
+		for (int i = 0; i < MAX_FRAME; i++) {
+			vkDestroyCommandPool(m_pContext->GetDevice(), m_frameResources[i].commandPool, nullptr);
+		}
+	});
 }
 
 void Renderer::CreateCommandBuffers()
@@ -268,6 +257,13 @@ void Renderer::CreateDescriptorAllocator()
 		m_frameResources[i].frameDescriptor = DescriptorAllocatorGrowable{};
 		m_frameResources[i].frameDescriptor.Init(m_pContext->GetDevice(), 1000, frame_sizes);
 	}
+
+	m_deletionQueue.PushFunction([this]() {
+		m_descriptorAllocator.Clear(m_pContext->GetDevice());
+		vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_drawImageDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_gpuSceneDataDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_pContext->GetDevice(), m_layout, nullptr);
+	});
 }
 
 void Renderer::CreateRenderPass()
@@ -300,6 +296,10 @@ void Renderer::CreateRenderPass()
 	renderPassInfo.pSubpasses = &subpass;
 
 	VK_CHECK( vkCreateRenderPass(m_pContext->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) );
+
+	m_deletionQueue.PushFunction([this] {
+		vkDestroyRenderPass(m_pContext->GetDevice(), m_renderPass, nullptr);
+	});
 }
 
 void Renderer::CreateFramebuffer()
@@ -323,6 +323,12 @@ void Renderer::CreateFramebuffer()
 
 		VK_CHECK(vkCreateFramebuffer(m_pContext->GetDevice(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]));
 	}
+
+	m_deletionQueue.PushFunction([this]() {
+		for (int i = 0; i < m_framebuffers.size(); i++) {
+			vkDestroyFramebuffer(m_pContext->GetDevice(), m_framebuffers[i], nullptr);
+		}
+	});
 }
 
 void Renderer::CreatePipeline()
@@ -350,4 +356,72 @@ void Renderer::CreateSyncObjects()
 		VK_CHECK(vkCreateSemaphore(m_pContext->GetDevice(), &semaphoreInfo, nullptr, &m_frameResources[i].renderSemaphore));
 		VK_CHECK(vkCreateFence(m_pContext->GetDevice(), &fenceInfo, nullptr, &m_frameResources[i].renderFence));
 	}
+
+	m_deletionQueue.PushFunction([this]() {
+		for (int i = 0; i < MAX_FRAME; i++) {
+			//destroy sync objects
+			vkDestroyFence(m_pContext->GetDevice(), m_frameResources[i].renderFence, nullptr);
+			vkDestroySemaphore(m_pContext->GetDevice(), m_frameResources[i].renderSemaphore, nullptr);
+			vkDestroySemaphore(m_pContext->GetDevice(), m_frameResources[i].swapchainSemaphore, nullptr);
+
+			m_frameResources[i].deletionQueue.Flush();
+			m_frameResources[i].frameDescriptor.Clear(m_pContext->GetDevice());
+		}
+	});
+}
+
+void Renderer::CreateSubmitStructures()
+{
+	VkCommandPoolCreateInfo immCommandPoolCreateInfo{};
+	immCommandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	immCommandPoolCreateInfo.pNext = nullptr;
+	immCommandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	immCommandPoolCreateInfo.queueFamilyIndex = m_pContext->GetGraphicsQueueFamilyIndex();
+	VK_CHECK(vkCreateCommandPool(m_pContext->GetDevice(), &immCommandPoolCreateInfo, nullptr, &m_immCommandPool));
+
+	VkCommandBufferAllocateInfo immAllocInfo{};
+	immAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	immAllocInfo.commandPool = m_immCommandPool;
+	immAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	immAllocInfo.commandBufferCount = 1;
+	VK_CHECK(vkAllocateCommandBuffers(m_pContext->GetDevice(), &immAllocInfo, &m_immCommandBuffer));
+
+	VkSemaphoreCreateInfo semaphoreInfo{};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fenceInfo{};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	VK_CHECK(vkCreateFence(m_pContext->GetDevice(), &fenceInfo, nullptr, &m_immFence));
+
+	m_deletionQueue.PushFunction([this]() {
+		vkDestroyCommandPool(m_pContext->GetDevice(), m_immCommandPool, nullptr);
+		vkDestroyFence(m_pContext->GetDevice(), m_immFence, nullptr);
+	});
+}
+
+void Renderer::ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function)
+{
+	VK_CHECK(vkResetFences(m_pContext->GetDevice(), 1, &m_immFence));
+	VK_CHECK(vkResetCommandBuffer(m_immCommandBuffer, 0));
+
+	VkCommandBuffer cmd = m_immCommandBuffer;
+
+	VkCommandBufferBeginInfo cmdBeginInfo = vkinit::CreateCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+
+	function(cmd);
+
+	VK_CHECK(vkEndCommandBuffer(cmd));
+
+	VkCommandBufferSubmitInfo cmdinfo = vkinit::CreateCommandBufferSubmitInfo(cmd);
+	VkSubmitInfo2 submit = vkinit::CreateSubmitInfo(&cmdinfo, nullptr, nullptr);
+
+	// submit command buffer to the queue and execute it.
+	//  m_immFence will now block until the graphic commands finish execution
+	VK_CHECK(vkQueueSubmit2(m_pContext->GetGraphicsQueue(), 1, &submit, m_immFence));
+
+	VK_CHECK(vkWaitForFences(m_pContext->GetDevice(), 1, &m_immFence, true, 9999999999));
 }

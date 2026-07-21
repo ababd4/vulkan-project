@@ -1,6 +1,6 @@
 #include "vk_Scene.h"
 
-#include "../../Graphics/Loader/vk_GltfLoader.h"
+#include "../../Graphics/Loader/GltfLoader.h"
 
 #include <../../vendor/include/glm/gtx/transform.hpp>
 

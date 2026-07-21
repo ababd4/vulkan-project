@@ -13,5 +13,6 @@ namespace vkinit {
 	VkSemaphoreSubmitInfo CreateSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
 	VkSubmitInfo2 CreateSubmitInfo(VkCommandBufferSubmitInfo* cmd, VkSemaphoreSubmitInfo* signalSemaphoreInfo, VkSemaphoreSubmitInfo* waitSemaphoreInfo);
 	VkPresentInfoKHR CreatePresentInfo();
+	VkImageSubresourceRange ImageSubResourceRange(VkImageAspectFlags aspectMask);
 }
 

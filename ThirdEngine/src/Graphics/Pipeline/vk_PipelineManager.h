@@ -21,6 +21,9 @@ private:
 
 	VkPipelineLayout m_pipelineLayout;
 
+	MaterialPipeline opaquePipeline;
+	MaterialPipeline transparentPipeline;
+
 	VkPipeline BuildPipeline(PipelineDesc desc);
 };
 

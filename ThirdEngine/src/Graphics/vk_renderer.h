@@ -2,7 +2,8 @@
 
 #include "../Graphics/vk_Context.h"
 #include "../Graphics/Pipeline/vk_PipelineManager.h"
-#include "../Graphics/Mesh/vk_MeshManager.h"
+#include "../Graphics/Asset/AssetManager.h"
+#include "../Graphics/Buffer/Buffer.h"
 #include "../Graphics/vk_Descriptors.h"
 #include "../Graphics/vk_Swapchain.h"
 #include "../Graphics/vk_Init.h"
@@ -11,37 +12,6 @@
 #include "vk_Types.h"
 
 #include <../../vendor/include/SDL/SDL.h>
-
-struct DeletionQueue
-{
-	std::deque<std::function<void()>> deletors;
-
-	void PushFunction(std::function<void()>&& function) {
-		deletors.push_back(function);
-	}
-
-	void Flush()
-	{
-		// reverse itrate the deletion queue to execute all the functions
-		for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
-			(*it)(); // call functors
-		}
-
-		deletors.clear();
-	}
-
-	void PrintContents() {
-		fmt::print("Deletion Queue Contents:\n");
-		fmt::print("Total number of deletion functions: {}\n", deletors.size());
-
-		for (size_t i = 0; i < deletors.size(); ++i) {
-			fmt::print("Deletion Function [{}]: {}\n",
-				i,
-				typeid(deletors[i]).name()
-			);
-		}
-	}
-};
 
 struct FrameResource {
 	VkCommandPool commandPool;
@@ -64,19 +34,18 @@ public:
 		VulkanContext* context, 
 		Window& window, 
 		PipelineManager* pipelineManager, 
-		MeshManager* meshManager, 
-		BufferManager* bufferManager, 
+		AssetManager* AssetManager, 
 		Scene* scene
 	);
 
 	void Cleanup();
 	void Render();
+	void ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
 
 private:
 	VulkanContext* m_pContext;
 	PipelineManager* m_pPipelineManager;
-	MeshManager* m_pMeshManager;
-	BufferManager* m_pBufferManager;
+	AssetManager* m_pAssetManager;
 	Scene* m_pScene;
 
 	// Push Constants
@@ -100,6 +69,11 @@ private:
 	VkRenderPass m_renderPass;
 	uint32_t subpass;
 
+	// Immediate SyncObjects to copy CPU Memory to GPU
+	VkFence m_immFence;
+	VkCommandBuffer m_immCommandBuffer;
+	VkCommandPool m_immCommandPool;
+
 	// Frame
 	std::vector<VkFramebuffer> m_framebuffers;
 	uint32_t currentFrameIndex = 0;
@@ -110,6 +84,9 @@ private:
 	GPUSceneData m_sceneData;
 	VkDescriptorSetLayout m_gpuSceneDataDescriptorLayout;
 
+	// Deletion Queue
+	DeletionQueue m_deletionQueue;
+
 	void CreateCommandPool();
 	void CreateCommandBuffers();
 	void CreateRenderPass();
@@ -117,6 +94,7 @@ private:
 	void CreateDescriptorAllocator();
 	void CreatePipeline();
 	void CreateSyncObjects();
+	void CreateSubmitStructures();
 
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	void RecreateSwapchain();

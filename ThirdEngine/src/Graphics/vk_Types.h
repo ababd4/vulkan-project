@@ -6,6 +6,40 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <deque>
+#include <functional>
+#include <fmt/base.h>
+
+struct DeletionQueue
+{
+	std::deque<std::function<void()>> deletors;
+
+	void PushFunction(std::function<void()>&& function) {
+		deletors.push_back(function);
+	}
+
+	void Flush()
+	{
+		// reverse itrate the deletion queue to execute all the functions
+		for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
+			(*it)(); // call functors
+		}
+
+		deletors.clear();
+	}
+
+	void PrintContents() {
+		fmt::print("Deletion Queue Contents:\n");
+		fmt::print("Total number of deletion functions: {}\n", deletors.size());
+
+		for (size_t i = 0; i < deletors.size(); ++i) {
+			fmt::print("Deletion Function [{}]: {}\n",
+				i,
+				typeid(deletors[i]).name()
+			);
+		}
+	}
+};
 
 struct AllocatedBuffer {
 	VkBuffer buffer;
@@ -63,9 +97,44 @@ struct GPUMeshBuffers {
 	VkDeviceAddress vertexBufferAddress;
 };
 
+enum class MaterialPass :uint8_t {
+	MainColor,
+	Transparent,
+	Other
+};
+
+struct MaterialPipeline {
+	VkPipeline pipeline;
+	VkPipelineLayout layout;
+};
+
+struct MaterialInstance {
+	MaterialPipeline* pipeline;
+	VkDescriptorSet materialSet;
+	MaterialPass passType;
+};
+
+struct RenderObject {
+	uint32_t indexCount;
+	uint32_t firstIndex;
+	VkBuffer indexBuffer;
+
+	MaterialInstance* material;
+
+	glm::mat4 transform;
+	VkDeviceAddress vertexBufferAddress;
+};
+
+namespace GLTF {
+	struct Material {
+		MaterialInstance data;
+	};
+};
+
 struct GeoSurface {
 	uint32_t startIndex;
 	uint32_t count;
+	std::shared_ptr<GLTF::Material> material;
 };
 
 struct MeshAsset {
@@ -107,3 +176,42 @@ struct PipelineDescHash {
 		return h;
 	}
 };
+
+struct DrawContext;
+
+// base class for a renderable dynamic object
+class IRenderable {
+
+	virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx) = 0;
+};
+
+// implementation of a drawable scene node.
+// the scene node can hold children and will also keep a transform to propagate
+// to them
+struct Node : public IRenderable {
+
+	// parent pointer must be a weak pointer to avoid circular dependencies
+	std::weak_ptr<Node> parent;
+	std::vector<std::shared_ptr<Node>> children;
+
+	glm::mat4 localTransform;
+	glm::mat4 worldTransform;
+
+	void refreshTransform(const glm::mat4& parentMatrix)
+	{
+		worldTransform = parentMatrix * localTransform;
+		for (auto c : children) {
+			c->refreshTransform(worldTransform);
+		}
+	}
+
+	virtual void Draw(const glm::mat4& topMatrix, DrawContext& ctx)
+	{
+		// draw children
+		for (auto& c : children) {
+			c->Draw(topMatrix, ctx);
+		}
+	}
+};
+
+
