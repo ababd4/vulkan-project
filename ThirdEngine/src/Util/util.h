@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fmt/core.h>
-#include "../Graphics/vk_Types.h"
+#include "../Graphics/Types.h"
 #include <vulkan/vk_enum_string_helper.h>
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Graphics/vk_Types.h"
+#include "../Graphics/Types.h"
 #include <../../vendor/include/SDL/SDL_events.h>
 
 class Camera {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../vk_Types.h"
-#include "../vk_Descriptors.h"
-#include "../vk_swapchain.h"
+#include "../Types.h"
+#include "../Descriptors.h"
+#include "../Swapchain.h"
 
 struct DrawContext {
 	std::vector<RenderObject> OpaqueSurfaces;

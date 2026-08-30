@@ -1,7 +1,7 @@
 #pragma once
-#include "../../Graphics/vk_Types.h"
+#include "../../Graphics/Types.h"
 #include "../../Util/Util.h"
-#include "../vk_Init.h"
+#include "../Init.h"
 #include <fstream>
 #include <optional>
 

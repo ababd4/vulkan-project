@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vk_Types.h"
+#include "Types.h"
 
 namespace vkinit {
 	VkPipelineShaderStageCreateInfo CreatePipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry = "main");

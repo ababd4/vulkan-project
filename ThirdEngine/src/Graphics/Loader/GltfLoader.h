@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../vk_Types.h"
-#include "../vk_Context.h"
+#include "../Types.h"
+#include "../VkContext.h"
 #include "../Model/Model.h"
 
 #include "fastgltf/parser.hpp"

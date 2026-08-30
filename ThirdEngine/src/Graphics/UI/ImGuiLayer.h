@@ -4,9 +4,9 @@
 #include <imgui/imgui_impl_vulkan.h>
 #include <imgui/imgui_impl_sdl2.h>
 
-#include "../vk_Types.h"
-#include "../vk_context.h"
-#include "../vk_swapchain.h"
+#include "../Types.h"
+#include "../VkContext.h"
+#include "../Swapchain.h"
 #include "../../Window/Window.h"
 
 class ImGuiLayer 

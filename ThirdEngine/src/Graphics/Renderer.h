@@ -1,15 +1,15 @@
 #pragma once
 
-#include "../Graphics/vk_Context.h"
+#include "../Graphics/VkContext.h"
 #include "../Graphics/Asset/AssetManager.h"
 #include "../Graphics/Buffer/Buffer.h"
-#include "../Graphics/vk_Descriptors.h"
-#include "../Graphics/vk_Swapchain.h"
-#include "../Graphics/vk_Init.h"
+#include "../Graphics/Descriptors.h"
+#include "../Graphics/Swapchain.h"
+#include "../Graphics/Init.h"
 #include "../Graphics/Scene/Scene.h"
 #include "../Graphics/UI/ImGuiLayer.h"
 #include "../Window/Window.h"
-#include "vk_Types.h"
+#include "Types.h"
 
 struct FrameResource {
 	VkCommandPool commandPool;

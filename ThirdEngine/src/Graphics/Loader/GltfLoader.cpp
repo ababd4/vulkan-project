@@ -1,6 +1,6 @@
 #include "GltfLoader.h"
 
-#include "../vk_renderer.h"
+#include "../Renderer.h"
 #include "../Asset/AssetManager.h"
 #include <stb_image/stb_image.h>
 #include <glm/gtx/transform.hpp>

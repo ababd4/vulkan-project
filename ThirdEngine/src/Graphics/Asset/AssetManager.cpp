@@ -1,9 +1,9 @@
 #include "../Asset/AssetManager.h"
 
 #include "../../Util/Util.h"
-#include "../vk_renderer.h"
-#include "../vk_swapchain.h"
-#include "../Pipeline/vk_PipelineBuilder.h"
+#include "../Renderer.h"
+#include "../Swapchain.h"
+#include "../Pipeline/PipelineBuilder.h"
 #include "../Loader/HDRLoader.h"
 
 #include <array>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../vk_Types.h"
+#include "../Types.h"
 #include <stb_image/stb_image.h>
 
 #include <optional>

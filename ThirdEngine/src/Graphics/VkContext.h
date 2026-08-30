@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vk_Types.h"
+#include "Types.h"
 #include "../Window/Window.h"
 #include "VkBootstrap/VkBootstrap.h"
 
