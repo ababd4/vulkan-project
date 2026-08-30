@@ -2,6 +2,7 @@
 
 #include "../vk_renderer.h"
 #include "../Asset/AssetManager.h"
+#include <stb_image/stb_image.h>
 #include <glm/gtx/transform.hpp>
 
 void GLTF::Loader::Init(VulkanContext* context, AssetManager* assetManager)
@@ -10,6 +11,7 @@ void GLTF::Loader::Init(VulkanContext* context, AssetManager* assetManager)
 	m_pAssetManager = assetManager;
 }
 
+/*
 void GLTF::Loader::LoadMesh(Renderer* renderer, const std::filesystem::path path)
 {
 	std::cout << "Loading: " << path << std::endl;
@@ -124,14 +126,72 @@ void GLTF::Loader::LoadMesh(Renderer* renderer, const std::filesystem::path path
 
 		std::cout << indices.size() << " " << vertices.size() << std::endl;
 
+
+
 		m_pAssetManager->UploadMesh(renderer, newMesh.name, indices, vertices);
 		m_pAssetManager->SetSurface(newMesh.name, newMesh.surfaces);
 	}
 }
+*/
 
-void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Renderer* renderer, std::string_view filePath, std::string_view name)
+void PrintImageChannelStatistics(
+	const unsigned char* data,
+	int width,
+	int height)
 {
-	fmt::print("Loading GLTF: {}", filePath);
+	uint64_t sum[4]{};
+
+	unsigned char minimum[4]{
+		255, 255, 255, 255
+	};
+
+	unsigned char maximum[4]{
+		0, 0, 0, 0
+	};
+
+	const size_t pixelCount =
+		static_cast<size_t>(width) *
+		static_cast<size_t>(height);
+
+	for (size_t pixel = 0; pixel < pixelCount; ++pixel)
+	{
+		for (size_t channel = 0; channel < 4; ++channel)
+		{
+			const unsigned char value =
+				data[pixel * 4 + channel];
+
+			minimum[channel] =
+				std::min(minimum[channel], value);
+
+			maximum[channel] =
+				std::max(maximum[channel], value);
+
+			sum[channel] += value;
+		}
+	}
+
+	const char* names[] = {
+		"R", "G", "B", "A"
+	};
+
+	for (size_t channel = 0; channel < 4; ++channel)
+	{
+		const double average =
+			static_cast<double>(sum[channel]) /
+			static_cast<double>(pixelCount);
+
+		std::cout
+			<< names[channel]
+			<< " min=" << static_cast<int>(minimum[channel])
+			<< " max=" << static_cast<int>(maximum[channel])
+			<< " avg=" << average
+			<< '\n';
+	}
+}
+
+void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Renderer* renderer, std::string_view filePath, std::string_view name, ShadingType shadingType)
+{
+	fmt::print("Loading GLTF: {}\n", filePath);
 
 	std::shared_ptr<GLTF::Model> scene = std::make_shared<GLTF::Model>(context, assetManager);
 	GLTF::Model& file = *scene.get();
@@ -179,14 +239,17 @@ void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Rend
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 },
 		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 } };
 
-	file.descriptorPool.Init(context->GetDevice(), gltf.materials.size(), sizes);
+	// at least, take care 1 descriptor pool for no material glb model
+	uint32_t materialCount = std::max(1u, (uint32_t)gltf.materials.size());
+
+	file.descriptorPool.Init(context->GetDevice(), materialCount, sizes);
 
 	// load samplers
 	for (fastgltf::Sampler& sampler : gltf.samplers) {
 
 		VkSamplerCreateInfo sampl = { .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, .pNext = nullptr };
 		sampl.maxLod = VK_LOD_CLAMP_NONE;
-		sampl.minLod = 0;
+		sampl.minLod = 0;	
 
 		sampl.magFilter = ExtractFilter(sampler.magFilter.value_or(fastgltf::Filter::Nearest));
 		sampl.minFilter = ExtractFilter(sampler.minFilter.value_or(fastgltf::Filter::Nearest));
@@ -207,29 +270,84 @@ void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Rend
 
 	// load all textures
 	for (fastgltf::Image& image : gltf.images) {
+		std::optional<AllocatedImage> img = LoadImage(assetManager, gltf, image, filePath);
 
-		images.push_back(assetManager->GetErrorImage());
+		if (img.has_value()) {
+			images.push_back(*img);
+			file.images.push_back(*img);
+		}
+		else {
+			// we failed to load, so lets give the slot a default white texture to not
+			// completely break loading
+			images.push_back(assetManager->GetErrorImage());
+			std::cout << "gltf failed to load texture " << image.name << std::endl;
+		}
 	}
 
 	// create buffer to hold the material data
-	file.materialDataBuffer = Buffer::CreateBuffer(context->GetAllocator(), sizeof(GLTF::MetallicRoughness::MaterialConstants) * gltf.materials.size(),
-		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+	file.materialDataBuffer = Buffer::CreateBuffer(context->GetAllocator(), sizeof(GLTF::MaterialSystem::MaterialConstants) * materialCount,
+		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, false, "materialData");
 	int data_index = 0;
-	GLTF::MetallicRoughness::MaterialConstants* sceneMaterialConstants = (GLTF::MetallicRoughness::MaterialConstants*)file.materialDataBuffer.info.pMappedData;
+	GLTF::MaterialSystem::MaterialConstants* sceneMaterialConstants = (GLTF::MaterialSystem::MaterialConstants*)file.materialDataBuffer.info.pMappedData;
+
+	if (gltf.materials.empty())
+	{
+		std::shared_ptr<Material> defaultMat =
+			std::make_shared<Material>();
+
+		GLTF::MaterialSystem::MaterialResources resources;
+
+		resources.colorImage = assetManager->GetGreyImage();
+		resources.colorSampler = assetManager->GetDefaultSamplerLinear();
+
+		resources.metalRoughImage = assetManager->GetWhiteImage();
+		resources.metalRoughSampler = assetManager->GetDefaultSamplerLinear();
+			
+		resources.dataBuffer = file.materialDataBuffer.buffer;
+		resources.dataBufferOffset = 0;
+
+		defaultMat->data =
+			assetManager->GetMaterialSystem(shadingType).WriteMaterial(
+				context->GetDevice(),
+				MaterialPass::MainColor,
+				resources,
+				file.descriptorPool);
+
+		materials.push_back(defaultMat);
+
+		file.materials["_default"] = defaultMat;
+	}
 
 	for (fastgltf::Material& mat : gltf.materials) {
 		std::shared_ptr<Material> newMat = std::make_shared<Material>();
 		materials.push_back(newMat);
 		file.materials[mat.name.c_str()] = newMat;
 
-		GLTF::MetallicRoughness::MaterialConstants constants;
+		GLTF::MaterialSystem::MaterialConstants constants{};
 		constants.colorFactors.x = mat.pbrData.baseColorFactor[0];
 		constants.colorFactors.y = mat.pbrData.baseColorFactor[1];
 		constants.colorFactors.z = mat.pbrData.baseColorFactor[2];
 		constants.colorFactors.w = mat.pbrData.baseColorFactor[3];
 
-		constants.metal_rough_factors.x = mat.pbrData.metallicFactor;
-		constants.metal_rough_factors.y = mat.pbrData.roughnessFactor;
+		constants.metalRoughFactors.x = mat.pbrData.metallicFactor;
+		constants.metalRoughFactors.y = mat.pbrData.roughnessFactor;
+
+		// set default value
+		constants.extraData.x = 0.5f;
+		constants.extraData.x = static_cast<float>(mat.alphaCutoff);
+		switch (mat.alphaMode) 
+		{
+		case fastgltf::AlphaMode::Opaque:
+			constants.extraData.y = static_cast<float>(GPUAlphaMode::Opaque);
+			break;
+		case fastgltf::AlphaMode::Mask:
+			constants.extraData.y = static_cast<float>(GPUAlphaMode::Mask);
+			break;
+		case fastgltf::AlphaMode::Blend:
+			constants.extraData.y = static_cast<float>(GPUAlphaMode::Blend);
+			break;
+		}
+
 		// write material parameters to buffer
 		sceneMaterialConstants[data_index] = constants;
 
@@ -238,27 +356,82 @@ void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Rend
 			passType = MaterialPass::Transparent;
 		}
 
-		GLTF::MetallicRoughness::MaterialResources materialResources;
+		GLTF::MaterialSystem::MaterialResources materialResources;
 		// default the material textures
 		materialResources.colorImage = assetManager->GetWhiteImage();
 		materialResources.colorSampler = assetManager->GetDefaultSamplerLinear();
 		materialResources.metalRoughImage = assetManager->GetWhiteImage();
 		materialResources.metalRoughSampler = assetManager->GetDefaultSamplerLinear();
+		materialResources.normalImage = assetManager->GetWhiteImage();
+		materialResources.normalSampler = assetManager->GetDefaultSamplerLinear();
 
 		// set the uniform buffer for the material data
 		materialResources.dataBuffer = file.materialDataBuffer.buffer;
-		materialResources.dataBufferOffset = data_index * sizeof(GLTF::MetallicRoughness::MaterialConstants);
+		materialResources.dataBufferOffset = data_index * sizeof(GLTF::MaterialSystem::MaterialConstants);
 		// grab textures from gltf file
+		// color textures
 		if (mat.pbrData.baseColorTexture.has_value()) {
-			size_t img = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].imageIndex.value();
-			size_t sampler = gltf.textures[mat.pbrData.baseColorTexture.value().textureIndex].samplerIndex.value();
+			const auto& textureInfo = mat.pbrData.baseColorTexture.value();
+			const size_t textureIndex = textureInfo.textureIndex;
 
-			materialResources.colorImage = images[img];
-			materialResources.colorSampler = file.samplers[sampler];
+			if (textureIndex < gltf.textures.size()) {
+				const fastgltf::Texture& texture = gltf.textures[textureIndex];
+
+				if (texture.imageIndex.has_value()) {
+					const size_t imageIndex = texture.imageIndex.value();
+
+					if (imageIndex < images.size()) {
+						materialResources.colorImage = images[imageIndex];
+					}
+				}
+
+				if (texture.samplerIndex.has_value()) {
+					const size_t samplerIndex = texture.samplerIndex.value();
+
+					if (samplerIndex < file.samplers.size()) {
+						materialResources.colorSampler = file.samplers[samplerIndex];
+					}
+				}
+			}
 		}
-		// build material
-		newMat->data = m_pAssetManager->GetMetallicRoughness().WriteMaterial(m_pContext->GetDevice(), passType, materialResources, file.descriptorPool);
 
+		// metallic roughness texture
+		if (mat.pbrData.metallicRoughnessTexture.has_value()) {
+			const auto& textureInfo = mat.pbrData.metallicRoughnessTexture.value();
+			const size_t textureIndex = textureInfo.textureIndex;
+
+			if (textureIndex < gltf.textures.size()) {
+				const fastgltf::Texture& texture = gltf.textures[textureIndex];
+
+				if (texture.imageIndex.has_value()) {
+					const size_t imageIndex = texture.imageIndex.value();
+
+					if (imageIndex < images.size()) {
+						materialResources.metalRoughImage = images[imageIndex];
+					}
+				}
+
+				if (texture.samplerIndex.has_value()) {
+					const size_t samplerIndex = texture.samplerIndex.value();
+
+					if (samplerIndex < file.samplers.size()) {
+						materialResources.metalRoughSampler = file.samplers[samplerIndex];
+					}
+				}
+			}
+		}
+
+		// normal textures
+		if (mat.normalTexture.has_value()) {
+			size_t img = gltf.textures[mat.normalTexture.value().textureIndex].imageIndex.value();
+			size_t sampler = gltf.textures[mat.normalTexture.value().textureIndex].samplerIndex.value();
+
+			materialResources.normalImage = images[img];
+			materialResources.normalSampler = file.samplers[sampler];
+		}
+
+		// build material
+		newMat->data = assetManager->GetMaterialSystem(shadingType).WriteMaterial(context->GetDevice(), passType, materialResources, file.descriptorPool);
 
 		data_index++;
 	}
@@ -273,7 +446,7 @@ void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Rend
 		file.meshes[mesh.name.c_str()] = newmesh;
 		newmesh->name = mesh.name;
 
-		// clear the mesh arrays each mesh, we dont want to merge them by error
+		// clear the mesh arrays each mesh
 		indices.clear();
 		vertices.clear();
 
@@ -343,19 +516,38 @@ void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Rend
 					});
 			}
 
-			if (p.materialIndex.has_value()) {
+			// load tangent
+			auto tangent = p.findAttribute("TANGENT");
+			if (tangent != p.attributes.end()) {
+				fastgltf::iterateAccessorWithIndex<glm::vec4>(gltf, gltf.accessors[(*tangent).second],
+					[&](glm::vec4 v, size_t index) {
+						vertices[initial_vtx + index].tangent = v;
+					});
+			}
+
+			if (p.materialIndex.has_value() && p.materialIndex.value() < materials.size()) {
 				newSurface.material = materials[p.materialIndex.value()];
 			}
 			else {
 				newSurface.material = materials[0];
 			}
 
+			//loop the vertices of this surface, find min/max bounds
+			glm::vec3 minpos = vertices[initial_vtx].position;
+			glm::vec3 maxpos = vertices[initial_vtx].position;
+			for (int i = initial_vtx; i < vertices.size(); i++) {
+				minpos = glm::min(minpos, vertices[i].position);
+				maxpos = glm::max(maxpos, vertices[i].position);
+			}
+			// calculate origin and extents from the min/max, use extent lenght for radius
+			newSurface.bounds.origin = (maxpos + minpos) / 2.f;
+			newSurface.bounds.extents = (maxpos - minpos) / 2.f;
+			newSurface.bounds.sphereRadius = glm::length(newSurface.bounds.extents);
+
 			newmesh->surfaces.push_back(newSurface);
 		}
 
-		//newmesh->meshBuffers = assetManager->UploadMesh(std::string(name), indices, vertices);
-		assetManager->UploadMesh(renderer, std::string(name), indices, vertices);
-		assetManager->SetSurface(newmesh->name, newmesh->surfaces);
+		newmesh->meshBuffers = assetManager->UploadMesh(renderer, std::string(name), indices, vertices);
 	}
 
 
@@ -373,7 +565,7 @@ void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Rend
 		}
 
 		nodes.push_back(newNode);
-		file.nodes[node.name.c_str()];
+		file.nodes[node.name.c_str()] = newNode;
 
 		std::visit(fastgltf::visitor{ [&](fastgltf::Node::TransformMatrix matrix) {
 										  memcpy(&newNode->localTransform, matrix.data(), sizeof(matrix));
@@ -415,6 +607,16 @@ void GLTF::Loader::Load(VulkanContext* context, AssetManager* assetManager, Rend
     
 	//return scene;
 	assetManager->SetGltfModel(std::string(name), scene);
+
+	std::cout << "Successfully Loaded: " << std::string(name) << std::endl;
+
+	for (auto& mesh : gltf.meshes)
+	{
+		std::cout << mesh.name
+			<< " primitives="
+			<< mesh.primitives.size()
+			<< std::endl;
+	}
 }
 
 // gltf using the numbers and properties from OpenGL, which do not match the vulkan ones, we need some conversion function
@@ -449,3 +651,90 @@ VkSamplerMipmapMode GLTF::Loader::ExtractMipmapMode(fastgltf::Filter filter)
 		return VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	}
 }
+
+std::optional<AllocatedImage> GLTF::Loader::LoadImage(AssetManager* assetManager, fastgltf::Asset& asset, fastgltf::Image& image, const std::filesystem::path& gltfPath)
+{
+	AllocatedImage newImage{};
+
+	int width, height, nrChannels;
+
+	std::visit(
+		fastgltf::visitor{
+			[](auto& arg) {},
+			[&](fastgltf::sources::URI& filePath) {
+				assert(filePath.fileByteOffset == 0);
+				assert(filePath.uri.isLocalPath());
+
+				const std::string relativePath(filePath.uri.path().begin(), filePath.uri.path().end());
+				const std::filesystem::path fullPath = (gltfPath.parent_path() / relativePath).lexically_normal();
+
+				unsigned char* data = stbi_load(fullPath.string().c_str(), &width, &height, &nrChannels, 4);
+				if (data) {
+					//PrintImageChannelStatistics(data, width, height);
+
+					VkExtent3D imagesize;
+					imagesize.width = width;
+					imagesize.height = height;
+					imagesize.depth = 1;
+
+					newImage = assetManager->CreateImage(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, true);
+
+					stbi_image_free(data);
+				}
+			},
+			[&](fastgltf::sources::Vector& vector) {
+				unsigned char* data = stbi_load_from_memory(vector.bytes.data(), static_cast<int>(vector.bytes.size()),
+					&width, &height, &nrChannels, 4);
+				if (data) {
+					//PrintImageChannelStatistics(data, width, height);
+
+					VkExtent3D imagesize;
+					imagesize.width = width;
+					imagesize.height = height;
+					imagesize.depth = 1;
+
+					newImage = assetManager->CreateImage(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, true);
+
+					stbi_image_free(data);
+				}
+			},
+			[&](fastgltf::sources::BufferView& view) {
+				auto& bufferView = asset.bufferViews[view.bufferViewIndex];
+				auto& buffer = asset.buffers[bufferView.bufferIndex];
+
+				std::visit(fastgltf::visitor{ // We only care about VectorWithMime here, because we
+											  // specify LoadExternalBuffers, meaning all buffers
+											  // are already loaded into a vector.
+					[](auto& arg) {},
+					[&](fastgltf::sources::Vector& vector) {
+						unsigned char* data = stbi_load_from_memory(vector.bytes.data() + bufferView.byteOffset,
+							static_cast<int>(bufferView.byteLength),
+							&width, &height, &nrChannels, 4);
+						if (data) {
+							//PrintImageChannelStatistics(data, width, height);
+
+							VkExtent3D imagesize;
+							imagesize.width = width;
+							imagesize.height = height;
+							imagesize.depth = 1;
+
+							newImage = assetManager->CreateImage(data, imagesize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, true);
+
+							stbi_image_free(data);
+						}
+					} },
+					buffer.data);
+			},
+		},
+		image.data);
+
+	// if any of the attempts to load the data failed, we havent written the image
+	// so handle is null
+	if (newImage.image == VK_NULL_HANDLE) {
+		return {};
+	}
+	else {
+		return newImage;
+	}
+}
+

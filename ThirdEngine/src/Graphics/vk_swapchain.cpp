@@ -9,7 +9,6 @@ void Swapchain::Init(VulkanContext* context, uint32_t width, uint32_t height)
 	m_pContext = context;
 	
 	CreateSwapchain(width, height);
-	CreateDrawImage(width, height);
 	CreatePresentSemaphore();
 }
 
@@ -17,68 +16,14 @@ void Swapchain::Cleanup()
 {
 	DestroyPresentSemaphore();
 
-	vkDestroySwapchainKHR(m_pContext->GetDevice(), m_swapchain, nullptr);
-
-	vkDestroyImageView(m_pContext->GetDevice(), m_drawImage.imageView, nullptr);
-	vmaDestroyImage(m_pContext->GetAllocator(), m_drawImage.image, m_drawImage.allocation);
-
-	vkDestroyImageView(m_pContext->GetDevice(), m_depthImage.imageView, nullptr);
-	vmaDestroyImage(m_pContext->GetAllocator(), m_depthImage.image, m_depthImage.allocation);
-
-	for (int i = 0; i < m_swapchainImageViews.size(); i++) {
-		vkDestroyImageView(m_pContext->GetDevice(), m_swapchainImageViews[i], nullptr);
+	for (int i = 0; i < m_swapchainColorImageViews.size(); i++) {
+		vkDestroyImageView(m_pContext->GetDevice(), m_swapchainColorImageViews[i], nullptr);
 	}
+
+	vkDestroySwapchainKHR(m_pContext->GetDevice(), m_swapchain, nullptr);
 }
 
-void Swapchain::CreateDrawImage(uint32_t width, uint32_t height)
-{
-	//draw image size will match the window
-	VkExtent3D drawImageExtent = {
-		width,
-		height,
-		1
-	};
 
-	//hardcoding the draw format to 32 bit float
-	m_drawImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
-	m_drawImage.imageExtent = drawImageExtent;
-
-	VkImageUsageFlags drawImageUsages{};
-	drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	drawImageUsages |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
-	drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-	VkImageCreateInfo rimg_info = vkinit::CreateImageCreateInfo(m_drawImage.imageFormat, drawImageUsages, drawImageExtent);
-
-	//for the draw image, we want to allocate it from gpu local memory
-	VmaAllocationCreateInfo rimg_allocinfo = {};
-	rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-	//allocate and create the image
-	vmaCreateImage(m_pContext->GetAllocator(), &rimg_info, &rimg_allocinfo, &m_drawImage.image, &m_drawImage.allocation, nullptr);
-
-	//build a image-view for the draw image to use for rendering
-	VkImageViewCreateInfo rview_info = vkinit::CreateImageviewCreateInfo(m_drawImage.imageFormat, m_drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
-
-	VK_CHECK(vkCreateImageView(m_pContext->GetDevice(), &rview_info, nullptr, &m_drawImage.imageView));
-
-	m_depthImage.imageFormat = VK_FORMAT_D32_SFLOAT;
-	m_depthImage.imageExtent = drawImageExtent;
-	VkImageUsageFlags depthImageUsages{};
-	depthImageUsages |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-
-	VkImageCreateInfo dimg_info = vkinit::CreateImageCreateInfo(m_depthImage.imageFormat, depthImageUsages, drawImageExtent);
-
-	//allocate and create the image
-	vmaCreateImage(m_pContext->GetAllocator(), &dimg_info, &rimg_allocinfo, &m_depthImage.image, &m_depthImage.allocation, nullptr);
-
-	//build a image-view for the draw image to use for rendering
-	VkImageViewCreateInfo dview_info = vkinit::CreateImageviewCreateInfo(m_depthImage.imageFormat, m_depthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
-
-	VK_CHECK(vkCreateImageView(m_pContext->GetDevice(), &dview_info, nullptr, &m_depthImage.imageView));
-}
 
 void Swapchain::CreateSwapchain(uint32_t width, uint32_t height)
 {
@@ -101,7 +46,7 @@ void Swapchain::CreateSwapchain(uint32_t width, uint32_t height)
 	// store swapchain and its related images
 	m_swapchain = vkbSwapchain.swapchain;
 	m_swapchainImages = vkbSwapchain.get_images().value();
-	m_swapchainImageViews = vkbSwapchain.get_image_views().value();
+	m_swapchainColorImageViews = vkbSwapchain.get_image_views().value();
 }
 
 void Swapchain::CreatePresentSemaphore()
@@ -109,7 +54,7 @@ void Swapchain::CreatePresentSemaphore()
 	DestroyPresentSemaphore();
 	const uint32_t imageCount = GetSwapchainImages().size();
 
-	std::cout << imageCount << std::endl;
+	// std::cout << imageCount << std::endl;
 
 	m_presentSemaphores.resize(imageCount);
 

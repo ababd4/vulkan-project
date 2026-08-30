@@ -3,7 +3,7 @@
 
 void DescriptorLayoutBuilder::add_binding(uint32_t binding, VkDescriptorType type)
 {
-	std::cout << "add_binding start" << std::endl;
+	//  std::cout << "add_binding start" << std::endl;
 
 	VkDescriptorSetLayoutBinding newbind{};
 	newbind.binding = binding;
@@ -24,10 +24,10 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(VkDevice device, VkShaderSt
 
 		b.stageFlags |= shaderStages;
 
-		std::cout << "Binding: " << b.binding
-			<< ", Type: " << b.descriptorType
-			<< ", Count: " << b.descriptorCount
-			<< ", StageFlags: " << b.stageFlags << std::endl;
+		//std::cout << "Binding: " << b.binding
+		//	<< ", Type: " << b.descriptorType
+		//	<< ", Count: " << b.descriptorCount
+		//	<< ", StageFlags: " << b.stageFlags << std::endl;
 	}
 
 	VkDescriptorSetLayoutCreateInfo info = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };

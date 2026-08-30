@@ -2,12 +2,11 @@
 
 #include "Graphics/vk_Context.h"
 #include "Graphics/vk_Renderer.h"
-#include "Graphics/Pipeline/vk_PipelineManager.h"
 #include "Graphics/Asset/AssetManager.h"
-#include "Graphics/Scene/vk_Scene.h"
-#include "Camera/camera.h"
+#include "Graphics/Scene/Scene.h"
+#include "Graphics/UI/ImGuiLayer.h"
 #include "Window/Window.h"
-#include "Graphics/Loader/GltfLoader.h"
+#include "Graphics/vk_types.h"
 
 class ThirdEngine
 {
@@ -22,12 +21,10 @@ private:
 	bool stopRendering = false;
 
 	VulkanContext m_vulkanContext;
-	PipelineManager m_pipelineManager;
 	AssetManager m_AssetManager;
 	Renderer m_renderer;
 	Scene m_scene;
 	Window m_renderWindow;
-	GLTF::Loader m_GltfLoader;
-
-	void LoadModels();
+	ImGuiLayer m_imGuiLayer;
+	EngineStats m_stats = {};
 };

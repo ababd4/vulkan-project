@@ -16,6 +16,7 @@ public:
 
 	void Init(Window* window);
 	void Cleanup();
+	void PrintAllocationCount(std::string str);
 
 	VkInstance GetInstance() { return m_instance; };
 	VkDevice GetDevice() { return m_device; };
@@ -24,7 +25,7 @@ public:
 	VkQueue GetGraphicsQueue() { return m_graphicsQueue; };
 	VkQueue GetPresentQueue() { return m_presentQueue; };
 	VkQueue GetTransferQueue() { return m_transferQueue; };
-	VmaAllocator GetAllocator() { return m_allocator; };
+	VmaAllocator& GetAllocator() { return m_allocator; };
 	uint32_t GetGraphicsQueueFamilyIndex() { return m_graphicsQueueFamilyIndex; };
 	uint32_t GetTransferQueueFamilyIndex() { return m_transferQueueFamilyIndex; };
 

@@ -86,7 +86,7 @@ VkCommandBufferBeginInfo vkinit::CreateCommandBufferBeginInfo(VkCommandBufferUsa
     return info;
 }
 
-VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass, VkFramebuffer frameBuffer, int32_t offset_x, int32_t offset_y, VkExtent2D extent, const VkClearValue* clear)
+VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass, VkFramebuffer frameBuffer, int32_t offset_x, int32_t offset_y, VkExtent2D extent, const VkClearValue* clear, uint32_t clearValueCount)
 {
     VkRenderPassBeginInfo info{};
     info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -94,7 +94,7 @@ VkRenderPassBeginInfo vkinit::CreateRenderPassBeginInfo(VkRenderPass renderPass,
     info.framebuffer = frameBuffer;
     info.renderArea.offset = { offset_x, offset_y };
     info.renderArea.extent = extent;
-    info.clearValueCount = 1;
+    info.clearValueCount = clearValueCount;
     info.pClearValues = clear;
 
     return info;
@@ -170,4 +170,57 @@ VkImageSubresourceRange vkinit::ImageSubResourceRange(VkImageAspectFlags aspectM
     subImage.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
     return subImage;
+}
+
+VkRenderingAttachmentInfo vkinit::CreateColorAttachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout)
+{
+    VkRenderingAttachmentInfo colorAttachment{};
+    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.pNext = nullptr;
+    colorAttachment.imageView = view;
+    colorAttachment.imageLayout = layout;
+    colorAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    if (clear) {
+        colorAttachment.clearValue = *clear;
+    }
+
+    return colorAttachment;
+}
+VkRenderingAttachmentInfo vkinit::CreateDepthAttachmentInfo(VkImageView view, VkClearDepthStencilValue* clear, VkImageLayout layout)
+{
+    VkRenderingAttachmentInfo depthAttachment{};
+    depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    depthAttachment.pNext = nullptr;
+    depthAttachment.imageView = view;
+    depthAttachment.imageLayout = layout;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    if (clear) {
+        depthAttachment.clearValue.depthStencil = *clear; // LESS:1.0f GREATER:0.0f
+    }
+
+    return depthAttachment;
+}
+
+VkRenderingInfo vkinit::CreateRenderingInfo(VkExtent2D extent, VkRenderingAttachmentInfo* colorAttachment, VkRenderingAttachmentInfo* depthAttachment)
+{
+    VkRenderingInfo renderingInfo{};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.pNext = nullptr;
+    if (colorAttachment != nullptr) {
+        renderingInfo.colorAttachmentCount = 1;
+        renderingInfo.pColorAttachments = colorAttachment;
+    }
+    else {
+        renderingInfo.colorAttachmentCount = 0;
+        renderingInfo.pColorAttachments = nullptr;
+    }
+    
+    renderingInfo.pDepthAttachment = depthAttachment;
+    renderingInfo.layerCount = 1;
+    renderingInfo.renderArea = VkRect2D{ VkOffset2D{0, 0}, extent };
+    renderingInfo.pStencilAttachment = nullptr;
+
+    return renderingInfo;
 }

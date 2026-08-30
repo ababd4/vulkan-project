@@ -1,0 +1,60 @@
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_buffer_reference : require
+#include "input.glsl"
+
+layout (location = 0) out vec3 outNormal;
+layout (location = 1) out vec3 outColor;
+layout (location = 2) out vec2 outUV;
+layout (location = 3) out mat3 outTBN;
+layout (location = 6) out vec4 outLightSpacePosition;
+layout (location = 7) out vec3 outFragPos;
+
+struct Vertex {
+
+	vec3 position;
+	float uv_x;
+	vec3 normal;
+	float uv_y;
+	vec4 color;
+	vec4 tangent;
+}; 
+
+layout(buffer_reference, std430) readonly buffer VertexBuffer{ 
+	Vertex vertices[];
+};
+
+//push constants block
+layout( push_constant ) uniform constants
+{
+	mat4 render_matrix;
+	VertexBuffer vertexBuffer;
+} PushConstants;
+
+void main() 
+{
+	Vertex v = PushConstants.vertexBuffer.vertices[gl_VertexIndex];
+	
+	vec4 position = vec4(v.position, 1.0f);
+	vec4 worldPos = PushConstants.render_matrix * position;
+
+	gl_Position =  sceneData.viewproj * worldPos;
+
+	mat3 normalMatrix = transpose(inverse(mat3(PushConstants.render_matrix)));
+	vec3 N = normalize(normalMatrix * v.normal);
+	outNormal = N;
+
+	vec3 T = normalize(normalMatrix * v.tangent.xyz);
+	// gram-schmidt orthogonalization
+	T = normalize(T - N * dot(T, N));
+	vec3 B = cross(N, T) * v.tangent.w;
+
+	outTBN = mat3(T, B, N);
+
+	outColor = v.color.xyz * materialData.colorFactors.xyz;	
+	outUV.x = v.uv_x;
+	outUV.y = v.uv_y;
+	outLightSpacePosition = sceneData.lightViewProj * worldPos;
+	outFragPos = worldPos.xyz;
+}

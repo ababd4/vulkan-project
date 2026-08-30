@@ -1,17 +1,15 @@
 #pragma once
 
 #include "../Graphics/vk_Context.h"
-#include "../Graphics/Pipeline/vk_PipelineManager.h"
 #include "../Graphics/Asset/AssetManager.h"
 #include "../Graphics/Buffer/Buffer.h"
 #include "../Graphics/vk_Descriptors.h"
 #include "../Graphics/vk_Swapchain.h"
 #include "../Graphics/vk_Init.h"
-#include "../Graphics/Scene/vk_Scene.h"
+#include "../Graphics/Scene/Scene.h"
+#include "../Graphics/UI/ImGuiLayer.h"
 #include "../Window/Window.h"
 #include "vk_Types.h"
-
-#include <../../vendor/include/SDL/SDL.h>
 
 struct FrameResource {
 	VkCommandPool commandPool;
@@ -31,22 +29,33 @@ class Renderer
 public:
 
 	void Init(
-		VulkanContext* context, 
-		Window& window, 
-		PipelineManager* pipelineManager, 
-		AssetManager* AssetManager, 
-		Scene* scene
+		VulkanContext* context,
+		Window& window,
+		AssetManager* AssetManager,
+		Scene* scene,
+		ImGuiLayer* imGuiLayer,
+		EngineStats* stats
 	);
 
 	void Cleanup();
-	void Render();
+	void Render(ImGuiLayer& imguiLayer);
 	void ImmediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
+
+	VkDescriptorSetLayout GetGlobalDescriptorSetLayout() { return m_gpuSceneDataDescriptorLayout; }
+	VkDescriptorSetLayout GetShadowDescriptorSetLayout() { return m_shadowResources.descriptorSetLayout; }
+	AllocatedImage GetDrawImage() { return m_drawImage; }
+	AllocatedImage GetDepthImage() { return m_depthImage; }
+
+	// Temporary define <- should not be here
+	// Swapchain
+	Swapchain m_swapchain;
 
 private:
 	VulkanContext* m_pContext;
-	PipelineManager* m_pPipelineManager;
 	AssetManager* m_pAssetManager;
 	Scene* m_pScene;
+	ImGuiLayer* m_pImGuiLayer;
+	EngineStats* m_pStats;
 
 	// Push Constants
 	GPUDrawPushConstants m_pushConstants;
@@ -58,16 +67,10 @@ private:
 	// Drawing image
 	VkDescriptorSet m_drawImageDescriptors;
 	VkDescriptorSetLayout m_drawImageDescriptorLayout;
-
-	// Pipeline Description
-	std::vector<PipelineDesc> m_pipelineDesc;
-
-	// Swapchain
-	Swapchain m_swapchain;
 		
 	// Render Pass
-	VkRenderPass m_renderPass;
-	uint32_t subpass;
+	//VkRenderPass m_renderPass;
+	//uint32_t subpass;
 
 	// Immediate SyncObjects to copy CPU Memory to GPU
 	VkFence m_immFence;
@@ -75,7 +78,7 @@ private:
 	VkCommandPool m_immCommandPool;
 
 	// Frame
-	std::vector<VkFramebuffer> m_framebuffers;
+	//std::vector<VkFramebuffer> m_framebuffers;
 	uint32_t currentFrameIndex = 0;
 	FrameResource m_frameResources[MAX_FRAME];
 	FrameResource& GetCurrentFrame() { return m_frameResources[currentFrameIndex % MAX_FRAME]; }
@@ -87,16 +90,26 @@ private:
 	// Deletion Queue
 	DeletionQueue m_deletionQueue;
 
+	// Images
+	AllocatedImage m_drawImage;
+	AllocatedImage m_depthImage;
+	VkExtent2D m_drawExtent;
+	float renderScale = 1.f;
+
+	// resources for shadow mapping
+	DirectionalShadowResources m_shadowResources;
+
 	void CreateCommandPool();
 	void CreateCommandBuffers();
-	void CreateRenderPass();
-	void CreateFramebuffer();
+	void CreateImages(uint32_t width, uint32_t height);
+	//void CreateRenderPass();
+	//void CreateFramebuffer();
 	void CreateDescriptorAllocator();
-	void CreatePipeline();
 	void CreateSyncObjects();
 	void CreateSubmitStructures();
 
-	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+	void DrawShadowPass(VkCommandBuffer cmd, VkDescriptorSet globalDescriptor);
+	void DrawMainPass(VkCommandBuffer commandBuffer, uint32_t imageIndex, VkDescriptorSet globalDescriptor);
 	void RecreateSwapchain();
 };
 

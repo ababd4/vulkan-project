@@ -22,7 +22,7 @@ public:
 
     void Clear();
 
-    VkPipeline BuildPipeline(VkDevice device, VkRenderPass renderPass, uint32_t subpass);
+    VkPipeline BuildPipeline(VkDevice device, VkRenderPass renderPass = VK_NULL_HANDLE, uint32_t subpass = 0);
 
     void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
     void set_input_topology(VkPrimitiveTopology topology);
@@ -31,11 +31,13 @@ public:
     void set_multisampling_none();
     void disable_blending();
     void set_color_attachment_format(std::optional<VkFormat> format);
+    void disable_color_attachment();
     void set_depth_format(VkFormat format);
     void disable_depthtest();
     void enable_depthtest(bool depthWriteEnable, VkCompareOp op);
     void enable_blending_additive();
     void enable_blending_alphablend();
+    void enable_rasterizer();
     void disable_rasterizer();
 };
 

@@ -7,9 +7,28 @@ void VulkanContext::Init(Window* window)
 	CreateContext(window);
 	CreateAllocator();
 }
-
+    
 void VulkanContext::Cleanup()
 {
+    /*
+    char* statsString = nullptr;
+
+    vmaBuildStatsString(
+        m_allocator,
+        &statsString,
+        VK_TRUE
+    );
+
+    std::cout << statsString << std::endl;
+
+    vmaFreeStatsString(
+        m_allocator,
+        statsString
+    );
+
+    PrintAllocationCount("shutdown");
+    */
+
 	vmaDestroyAllocator(m_allocator);
 
     vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
@@ -18,21 +37,28 @@ void VulkanContext::Cleanup()
 	vkDestroyInstance(m_instance, nullptr);
 }
 
+void VulkanContext::PrintAllocationCount(std::string str)
+{
+    VmaTotalStatistics stats{};
+    vmaCalculateStatistics(m_allocator, &stats);
+    std::cout << str << ": " << stats.total.statistics.allocationCount << std::endl;
+}
+
 void VulkanContext::CreateContext(Window* window)
 {
     vkb::InstanceBuilder builder;
 
     //make the vulkan instance, with basic debug features
-    auto inst_ret = builder.set_app_name("Vulkan Engine")
+    auto inst_ret = builder.set_app_name("Third Engine")
         .request_validation_layers(bUseValidationLayers)
         .use_default_debug_messenger()
         .require_api_version(1, 3, 0)
         .build();
 
-    vkb::Instance vkb_inst = inst_ret.value();
+    vkb_inst = inst_ret.value();
 
     // grab the instance
-    m_instance = vkb_inst;
+    m_instance = vkb_inst.instance;
     m_debug_messenger = vkb_inst.debug_messenger;
 
     SDL_Vulkan_CreateSurface(window->GetWindow(), m_instance, &m_surface);

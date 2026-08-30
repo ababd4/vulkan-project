@@ -152,32 +152,42 @@
     <ClCompile Include="src\Camera\Camera.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\Graphics\Buffer\Buffer.cpp" />
+    <ClCompile Include="src\Graphics\Loader\HDRLoader.cpp" />
     <ClCompile Include="src\Graphics\Model\Model.cpp" />
     <ClCompile Include="src\Graphics\Pipeline\vk_PipelineBuilder.cpp" />
+    <ClCompile Include="src\Graphics\UI\ImGuiLayer.cpp" />
     <ClCompile Include="src\Graphics\vk_Descriptors.cpp" />
     <ClCompile Include="src\Graphics\vk_Swapchain.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Graphics\vk_Context.cpp" />
     <ClCompile Include="src\Graphics\vk_Renderer.cpp" />
+    <ClCompile Include="src\Util\stb_image_build.cpp" />
     <ClCompile Include="src\Window\Window.cpp" />
     <ClCompile Include="vendor\include\fastgltf\base64.cpp" />
     <ClCompile Include="vendor\include\fastgltf\fastgltf.cpp" />
     <ClCompile Include="vendor\include\fastgltf\simdjson.cpp" />
+    <ClCompile Include="vendor\include\imgui\imgui.cpp" />
+    <ClCompile Include="vendor\include\imgui\imgui_demo.cpp" />
+    <ClCompile Include="vendor\include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="vendor\include\imgui\imgui_impl_sdl2.cpp" />
+    <ClCompile Include="vendor\include\imgui\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="vendor\include\imgui\imgui_tables.cpp" />
+    <ClCompile Include="vendor\include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="vendor\include\VkBootstrap\VkBootstrap.cpp" />
     <ClCompile Include="vendor\include\vma\vk_mem_alloc.cpp" />
     <ClCompile Include="src\Graphics\vk_Init.cpp" />
-    <ClCompile Include="src\Graphics\Pipeline\vk_PipelineManager.cpp" />
     <ClCompile Include="src\Graphics\Asset\AssetManager.cpp" />
     <ClCompile Include="src\Graphics\Loader\GltfLoader.cpp" />
-    <ClCompile Include="src\Graphics\Scene\vk_Scene.cpp" />
+    <ClCompile Include="src\Graphics\Scene\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Buffer.h" />
     <ClInclude Include="src\Camera\Camera.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\Graphics\Asset\AssetManager.h" />
     <ClInclude Include="src\Graphics\Buffer\Buffer.h" />
+    <ClInclude Include="src\Graphics\Loader\HDRLoader.h" />
     <ClInclude Include="src\Graphics\Model\Model.h" />
+    <ClInclude Include="src\Graphics\UI\ImGuiLayer.h" />
     <ClInclude Include="src\Graphics\vk_Context.h" />
     <ClInclude Include="src\Graphics\vk_Descriptors.h" />
     <ClInclude Include="src\Graphics\vk_Swapchain.h" />
@@ -187,9 +197,8 @@
     <ClInclude Include="src\Graphics\Pipeline\vk_PipelineBuilder.h" />
     <ClInclude Include="src\Graphics\vk_Init.h" />
     <ClInclude Include="src\Window\Window.h" />
-    <ClInclude Include="src\Graphics\Pipeline\vk_PipelineManager.h" />
     <ClInclude Include="src\Graphics\Loader\GltfLoader.h" />
-    <ClInclude Include="src\Graphics\Scene\vk_Scene.h" />
+    <ClInclude Include="src\Graphics\Scene\Scene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -11,10 +11,8 @@ public:
 	VkSwapchainKHR GetSwapchain() { return m_swapchain; }
 	VkFormat GetSwapchainImageFormat() { return m_swapchainImageFormat; }
 	std::vector<VkImage> GetSwapchainImages() { return m_swapchainImages; }
-	std::vector<VkImageView> GetSwapchainImageViews() { return m_swapchainImageViews; }
+	std::vector<VkImageView> GetSwapchainImageViews() { return m_swapchainColorImageViews; } // for imgui
 	VkExtent2D GetSwapchainExtent() { return m_swapchainExtent; }
-	AllocatedImage GetDrawImage() { return m_drawImage; }
-	AllocatedImage GetDepthImage() { return m_depthImage; }
 	VkSemaphore GetPresentSemaphoreByIndex(uint32_t imageIndex) { return m_presentSemaphores[imageIndex]; }
 
 private:
@@ -23,17 +21,13 @@ private:
 	VkSwapchainKHR m_swapchain;
 	VkFormat m_swapchainImageFormat;
 	std::vector<VkImage> m_swapchainImages;
-	std::vector<VkImageView> m_swapchainImageViews;
+	std::vector<VkImageView> m_swapchainColorImageViews;
 	VkExtent2D m_swapchainExtent;
 
 	// semaphore for present image
 	std::vector<VkSemaphore> m_presentSemaphores;
 
-	AllocatedImage m_drawImage;
-	AllocatedImage m_depthImage;
-
 	void CreateSwapchain(uint32_t width, uint32_t height);
-	void CreateDrawImage(uint32_t width, uint32_t height);
 	void CreatePresentSemaphore();
 	void DestroyPresentSemaphore();
 };

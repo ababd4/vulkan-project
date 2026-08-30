@@ -2,7 +2,7 @@
 
 #include "../../Util/Util.h"
 
-AllocatedBuffer Buffer::CreateBuffer(VmaAllocator allocator, size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage)
+AllocatedBuffer Buffer::CreateBuffer(VmaAllocator allocator, size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, bool debug, const char* name)
 {
 	// create buffer
 	VkBufferCreateInfo bufferInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -18,8 +18,28 @@ AllocatedBuffer Buffer::CreateBuffer(VmaAllocator allocator, size_t allocSize, V
 
 	// allocate the buffer
 	VK_CHECK(vmaCreateBuffer(allocator, &bufferInfo, &vmaallocInfo, &newBuffer.buffer, &newBuffer.allocation, &newBuffer.info));
+	vmaSetAllocationName(allocator, newBuffer.allocation, name);
+
+	if (debug) {
+		std::cout
+			<< "[CREATE BUFFER] "
+			<< newBuffer.allocation
+			<< " size=" << allocSize
+			<< std::endl;
+	}
 
 	return newBuffer;
+}
+
+void Buffer::DestroyBuffer(VmaAllocator allocator, AllocatedBuffer buffer, bool debug, const char* name) 
+{
+	if (debug) {
+		std::cout
+			<< "[DESTROY BUFFER] "
+			<< buffer.allocation
+			<< std::endl;
+	}
+	vmaDestroyBuffer(allocator, buffer.buffer, buffer.allocation);
 }
 
 AllocatedBuffer Buffer::CreateStagingBuffer(VmaAllocator allocator, size_t allocSize)
