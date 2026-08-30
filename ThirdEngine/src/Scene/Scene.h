@@ -1,11 +1,9 @@
 #pragma once
 
-#include "../Types.h"
-#include "../../Camera/Camera.h"
-#include "../../Window/Window.h"
-#include "../Asset/AssetManager.h"
-
-#include <unordered_map>
+#include "Core/Types.h"
+#include "Camera/Camera.h"
+#include "Window/Window.h"
+#include "Graphics/Asset/AssetManager.h"
 
 class Scene
 {

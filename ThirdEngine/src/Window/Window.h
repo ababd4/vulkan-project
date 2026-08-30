@@ -3,7 +3,7 @@
 #include "SDL/SDL.h"
 #include "SDL/SDL_vulkan.h"
 
-#include "../Graphics/Types.h"
+#include "Core/Types.h"
 
 class Window {
 public:

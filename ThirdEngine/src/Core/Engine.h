@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Graphics/VkContext.h"
-#include "Graphics/Renderer.h"
+#include "Graphics/Backend/VkContext.h"
+#include "Graphics/Renderer/Renderer.h"
 #include "Graphics/Asset/AssetManager.h"
-#include "Graphics/Scene/Scene.h"
-#include "Graphics/UI/ImGuiLayer.h"
+#include "Scene/Scene.h"
+#include "UI/ImGuiLayer.h"
 #include "Window/Window.h"
-#include "Graphics/types.h"
+#include "Types.h"
 
 class ThirdEngine
 {

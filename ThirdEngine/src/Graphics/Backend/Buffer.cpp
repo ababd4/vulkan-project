@@ -1,6 +1,6 @@
-#include "../Buffer/Buffer.h"
+#include "Buffer.h"
 
-#include "../../Util/Util.h"
+#include "Util/Util.h"
 
 AllocatedBuffer Buffer::CreateBuffer(VmaAllocator allocator, size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, bool debug, const char* name)
 {

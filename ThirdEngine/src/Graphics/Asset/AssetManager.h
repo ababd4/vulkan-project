@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../Types.h"
-#include "../VkContext.h"
-#include "../Buffer/Buffer.h"
-#include "../Loader/GltfLoader.h"
-#include "../Model/Model.h"
+#include "Core/Types.h"
+#include "Graphics/Backend/VkContext.h"
+#include "Graphics/Loader/GltfLoader.h"
+#include "Graphics/Model/Model.h"
 
 #include <span>
 #include <map>

@@ -1,7 +1,7 @@
 #pragma once
-#include "../../Graphics/Types.h"
-#include "../../Util/Util.h"
-#include "../Init.h"
+#include "Core/Types.h"
+#include "Util/Util.h"
+#include "Graphics/Backend/Init.h"
 #include <fstream>
 #include <optional>
 

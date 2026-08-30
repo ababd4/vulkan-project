@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Types.h"
-#include "../VkContext.h"
-#include "../Model/Model.h"
+#include "Core/Types.h"
+#include "Graphics/Backend/VkContext.h"
+#include "Graphics/Model/Model.h"
 
 #include "fastgltf/parser.hpp"
 #include "fastgltf/tools.hpp"

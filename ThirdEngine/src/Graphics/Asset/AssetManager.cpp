@@ -1,9 +1,9 @@
 #include "../Asset/AssetManager.h"
 
-#include "../../Util/Util.h"
-#include "../Renderer.h"
-#include "../Swapchain.h"
-#include "../Pipeline/PipelineBuilder.h"
+#include "Util/Util.h"
+#include "Graphics/Renderer/Renderer.h"
+#include "Graphics/Backend/Swapchain.h"
+#include "Graphics/Pipeline/PipelineBuilder.h"
 #include "../Loader/HDRLoader.h"
 
 #include <array>

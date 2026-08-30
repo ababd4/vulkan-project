@@ -4,10 +4,10 @@
 #include <imgui/imgui_impl_vulkan.h>
 #include <imgui/imgui_impl_sdl2.h>
 
-#include "../Types.h"
-#include "../VkContext.h"
-#include "../Swapchain.h"
-#include "../../Window/Window.h"
+#include "Core/Types.h"
+#include "Graphics/Backend/VkContext.h"
+#include "Graphics/Backend/Swapchain.h"
+#include "Window/Window.h"
 
 class ImGuiLayer 
 {		

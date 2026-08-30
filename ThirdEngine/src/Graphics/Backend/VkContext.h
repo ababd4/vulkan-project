@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Types.h"
-#include "../Window/Window.h"
+#include "Core/Types.h"
+#include "Window/Window.h"
 #include "VkBootstrap/VkBootstrap.h"
 
 #ifdef _DEBUG

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Types.h"
+#include "Core/Types.h"
 #include <stb_image/stb_image.h>
 
 #include <optional>

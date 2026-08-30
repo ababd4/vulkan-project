@@ -1,7 +1,7 @@
 #include "GltfLoader.h"
 
-#include "../Renderer.h"
-#include "../Asset/AssetManager.h"
+#include "Graphics/Renderer/Renderer.h"
+#include "Graphics/Asset/AssetManager.h"
 #include <stb_image/stb_image.h>
 #include <glm/gtx/transform.hpp>
 

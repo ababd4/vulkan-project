@@ -1,8 +1,8 @@
 #include "Camera.h"
 
-#include <../../vendor/include/glm/glm.hpp>
-#include <../../vendor/include/glm/gtx/transform.hpp>
-#include <../../vendor/include/glm/gtx/quaternion.hpp>
+#include <../vendor/include/glm/glm.hpp>
+#include <../vendor/include/glm/gtx/transform.hpp>
+#include <../vendor/include/glm/gtx/quaternion.hpp>
 
 void Camera::Init(glm::vec3 position, glm::vec3 velocity) 
 {

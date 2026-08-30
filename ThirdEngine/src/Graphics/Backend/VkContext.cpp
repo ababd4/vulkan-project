@@ -1,6 +1,6 @@
 #include "VkContext.h"
 
-#include "../Util/Util.h"
+#include "Util/Util.h"
 
 void VulkanContext::Init(Window* window)
 {

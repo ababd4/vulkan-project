@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-#include "../../Graphics/Loader/GltfLoader.h"
+#include "Graphics/Loader/GltfLoader.h"
 
 #include <../../vendor/include/glm/gtx/transform.hpp>
 

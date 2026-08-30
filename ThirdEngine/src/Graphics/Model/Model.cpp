@@ -1,8 +1,8 @@
-#include "../Model/Model.h"
-#include "../Buffer/Buffer.h"
-#include "../Pipeline/PipelineBuilder.h"
-#include "../Asset/AssetManager.h"
-#include "../Renderer.h"
+#include "Graphics/Model/Model.h"
+#include "Graphics/Backend/Buffer.h"
+#include "Graphics/Pipeline/PipelineBuilder.h"
+#include "Graphics/Asset/AssetManager.h"
+#include "Graphics/Renderer/Renderer.h"
 
 void GLTF::Model::ClearAll()
 {
